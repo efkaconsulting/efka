@@ -72,6 +72,16 @@
   @apply btn border-none px-2 tracking-[0.14em] text-muted shadow-none hover:bg-transparent hover:text-gold dark:hover:bg-transparent dark:hover:text-gold;
 }
 
+/*
+ * The header is a dark subtree on every page (see PageLayout), so it must
+ * carry its own navy ground rather than sitting transparent. Without this it
+ * renders ivory-on-ivory on any page that does not open with the navy hero —
+ * the blog, the article pages, 404.
+ */
+#header.dark > div:first-child {
+  @apply border-b border-gold/25 bg-navy;
+}
+
 #header.scroll > div:first-child {
   @apply border-b border-gold/35 bg-page md:bg-[#f4f0e8f2] md:backdrop-blur-md;
   box-shadow: 0 0.25rem 1.25rem 0 rgb(11 23 40 / 8%);

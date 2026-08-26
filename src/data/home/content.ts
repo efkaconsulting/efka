@@ -12,14 +12,14 @@
 import type { CallToAction, Item, Stat, Testimonial } from '~/types';
 
 export const meta = {
-  title: 'efka consulting — Seçkin Ev ve Bakım Personeli Danışmanlığı',
+  title: 'efka',
   ignoreTitleTemplate: true,
 };
 
 export const hero = {
-  tagline: 'Butik Danışmanlık · İstanbul',
+  tagline: 'Ev ve Bakım Personeli Danışmanlığı',
   title: 'Evinizin huzuru,<br />doğru kişiyle başlar.',
-  subtitle: `efka consulting; dadı, bebek bakıcısı, yaşlı refakatçisi ve ev işletmesi personelini
+  subtitle: `efka; dadı, bebek bakıcısı, yaşlı refakatçisi ve ev işletmesi personelini
     ailenizle buluşturur. Her aday, sizinle tanışmadan önce referans, adli sicil ve sağlık
     kontrolünden geçer. Sınırlı sayıda aile ile, tam gizlilik içinde çalışırız.`,
   actions: [

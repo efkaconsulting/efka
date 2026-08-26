@@ -2,19 +2,19 @@
 /*
  * Slim strip above the header.
  *
- * Replaces AstroWind's template announcement. Carries a scarcity line and the
- * direct contact route — the two things an exclusive service wants above the
- * fold. Text lives here rather than in `content.ts` because it is site chrome,
- * not page content.
+ * Replaces AstroWind's template announcement. Currently carries the
+ * under-construction notice; once the site launches, swap `notice` for a
+ * standing line (scarcity, seasonal availability) or remove this widget from
+ * PageLayout.astro entirely.
  */
-const notice = 'Aynı dönemde kabul ettiğimiz aile sayısı sınırlıdır.';
+const notice = 'Bu site yapım aşamasındadır — içerikler kısa süre içinde güncellenecektir.';
 const email = 'info@efkaconsulting.com';
 ---
 
 <div
-  class="bg-navy text-ivory/70 relative hidden overflow-hidden border-b border-gold/25 px-4 py-2 text-ellipsis whitespace-nowrap md:flex md:items-center md:gap-4"
+  class="relative hidden overflow-hidden border-b border-gold/25 bg-navy px-4 py-2 text-ellipsis whitespace-nowrap text-ivory/70 md:flex md:items-center md:gap-3"
 >
-  <span class="brand-eyebrow text-[0.65rem] text-gold">Butik Danışmanlık</span>
+  <span class="brand-eyebrow text-[0.65rem]">Yapım Aşamasında</span>
 
   <span class="h-3 w-px bg-gold/40" aria-hidden="true"></span>
 
@@ -22,7 +22,7 @@ const email = 'info@efkaconsulting.com';
 
   <a
     href={`mailto:${email}`}
-    class="ltr:ml-auto rtl:mr-auto font-sans text-xs font-light tracking-[0.08em] transition hover:text-gold"
+    class="font-sans text-xs font-light tracking-[0.08em] transition ltr:ml-auto rtl:mr-auto hover:text-gold"
   >
     {email}
   </a>

@@ -1,5 +1,5 @@
 site:
-  name: efka consulting
+  name: efka
   site: 'https://efkaconsulting.com'
   base: '/'
   trailingSlash: false
@@ -9,9 +9,9 @@ site:
 # Default SEO metadata
 metadata:
   title:
-    default: 'efka consulting — Seçkin Ev ve Bakım Personeli Danışmanlığı'
-    template: '%s — efka consulting'
-  description: 'Dadı, bebek bakıcısı, yaşlı refakatçisi ve ev işletmesi personeli için titizlikle referans ve sicil kontrolünden geçirilmiş, sınırlı sayıda adayla çalışan butik danışmanlık.'
+    default: 'efka'
+    template: '%s — efka'
+  description: 'Dadı, bebek bakıcısı, yaşlı refakatçisi ve ev işletmesi personeli için titizlikle referans ve sicil kontrolünden geçirilmiş, sınırlı sayıda adayla çalışan danışmanlık hizmeti.'
   robots:
     index: true
     follow: true

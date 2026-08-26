@@ -27,8 +27,11 @@ const { compact = false, class: className = '' } = Astro.props;
     !compact && (
       <Fragment>
         <span class="h-5 w-px self-center bg-gold/70 md:h-[1.15rem]" aria-hidden="true" />
-        <span class="font-sans text-gold text-[0.6rem] leading-none font-medium tracking-[0.3em] uppercase md:text-[0.58rem]">
-          Consulting
+        <span
+          lang="en"
+          class="font-sans text-[0.6rem] leading-none font-medium tracking-[0.3em] text-gold normal-case md:text-[0.58rem]"
+        >
+          CONSULTING
         </span>
       </Fragment>
     )
