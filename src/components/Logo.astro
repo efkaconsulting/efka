@@ -1,9 +1,7 @@
 ---
-import { SITE } from 'astrowind:config';
+// AstroWind's logo slot, delegated to the efka lockup. Kept as a thin
+// re-export so upstream changes to this file remain trivial to merge.
+import BrandLogo from '~/components/brand/Logo.astro';
 ---
 
-<span
-  class="self-center ml-2 rtl:ml-0 rtl:mr-2 text-2xl md:text-xl font-bold text-gray-900 whitespace-nowrap dark:text-white"
->
-  🚀 {SITE?.name}
-</span>
+<BrandLogo class="ml-2 self-center rtl:mr-2 rtl:ml-0" />

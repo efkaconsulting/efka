@@ -1,0 +1,27 @@
+---
+/*
+ * Background for one band of the alternating navy/ivory page rhythm.
+ *
+ * Passed into any AstroWind widget's `bg` slot. Pair `tone="navy"` with the
+ * widget's `isDark` prop: `isDark` flips the text tokens and `dark:` variants,
+ * this paints the ground and draws the gold hairline seam above it.
+ *
+ *   <Features isDark>
+ *     <Fragment slot="bg"><BandBg tone="navy" /></Fragment>
+ *   </Features>
+ */
+
+interface Props {
+  tone?: 'navy' | 'ivory';
+  /** Draw the gold hairline at the top edge. Off for the first band on a page. */
+  seam?: boolean;
+}
+
+const { tone = 'ivory', seam = true } = Astro.props;
+---
+
+<div
+  class:list={['absolute inset-0', tone === 'navy' ? 'bg-navy' : 'bg-ivory', { 'brand-seam': seam }]}
+  aria-hidden="true"
+>
+</div>

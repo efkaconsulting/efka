@@ -1,0 +1,36 @@
+---
+/*
+ * The efka lockup, set in live text.
+ *
+ * Layout #05 from the brand board: the wordmark in Cormorant Garamond beside a
+ * vertical gold rule, followed by letterspaced CONSULTING in Montserrat.
+ * Rendered as text rather than an image so it stays crisp at any size and
+ * inherits band colors — ivory on navy, navy on ivory — for free.
+ *
+ * Colors come from the `--aw-color-text-heading` token, so this component works
+ * unchanged inside any band.
+ */
+
+interface Props {
+  /** Hide the CONSULTING half. Used where horizontal room is tight. */
+  compact?: boolean;
+  class?: string;
+}
+
+const { compact = false, class: className = '' } = Astro.props;
+---
+
+<span class:list={['inline-flex items-baseline gap-3 whitespace-nowrap select-none', className]}>
+  <span class="font-heading text-heading text-3xl leading-none font-normal lowercase md:text-[1.75rem]">efka</span>
+
+  {
+    !compact && (
+      <Fragment>
+        <span class="h-5 w-px self-center bg-gold/70 md:h-[1.15rem]" aria-hidden="true" />
+        <span class="font-sans text-gold text-[0.6rem] leading-none font-medium tracking-[0.3em] uppercase md:text-[0.58rem]">
+          Consulting
+        </span>
+      </Fragment>
+    )
+  }
+</span>

@@ -33,17 +33,31 @@ export default defineConfig({
     defaultStrategy: 'viewport',
   },
 
-  // Native Fonts API: self-hosts + subsets + preloads Inter and generates
-  // metric-adjusted fallbacks. Injected via <Font /> in Layout.astro and
-  // consumed through the `--font-inter` CSS variable in CustomStyles.astro.
+  // Native Fonts API: self-hosts + subsets + preloads the efka typefaces and
+  // generates metric-adjusted fallbacks. Injected via <Font /> in Layout.astro
+  // and consumed through the `--font-*` CSS variables in brand.css.
+  //
+  // `latin-ext` is required alongside `latin`: Turkish needs ğ ş ı İ ç ö ü,
+  // which do not exist in the `latin` subset.
   fonts: [
     {
+      // Display / headings — the logo typeface from the brand board.
       provider: fontProviders.fontsource(),
-      name: 'Inter',
-      cssVariable: '--font-inter',
-      weights: ['100 900'],
+      name: 'Cormorant Garamond',
+      cssVariable: '--font-cormorant',
+      weights: ['300 700'],
+      styles: ['normal', 'italic'],
+      subsets: ['latin', 'latin-ext'],
+      fallbacks: ['Georgia', 'serif'],
+    },
+    {
+      // Body / UI — the brand's secondary face.
+      provider: fontProviders.fontsource(),
+      name: 'Montserrat',
+      cssVariable: '--font-montserrat',
+      weights: ['300 700'],
       styles: ['normal'],
-      subsets: ['latin'],
+      subsets: ['latin', 'latin-ext'],
       fallbacks: ['sans-serif'],
     },
   ],
