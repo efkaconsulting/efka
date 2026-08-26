@@ -1,0 +1,123 @@
+/*
+ * efka consulting — brand layer.
+ *
+ * Single source of truth for the brand. Imported once from `tailwind.css`.
+ * It defines tokens and brand-specific utilities only — it contains no
+ * AstroWind selectors, so upstream template updates cannot conflict with it.
+ * Upstream reaches this layer indirectly: CustomStyles.astro points the
+ * `--aw-*` variables at these tokens.
+ *
+ * Palette (2025 brand board):
+ *   #0B1728  deep navy    — primary ground
+ *   #F4F0E8  ivory        — paper
+ *   #B49A6A  antique gold — rules, accents, small caps
+ */
+
+@theme {
+  /* ---- Raw brand colors ------------------------------------------------ */
+  --color-navy: #0b1728;
+  --color-navy-700: #12233a;
+  --color-navy-600: #1b2f4a;
+  --color-ivory: #f4f0e8;
+  --color-ivory-200: #e7e0d3;
+  --color-gold: #b49a6a;
+  --color-gold-400: #c9b28a;
+  --color-gold-600: #977f52;
+
+  /* ---- Typography ------------------------------------------------------ */
+  --font-display: var(--font-cormorant), Georgia, 'Times New Roman', serif;
+  --font-body: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+
+  --tracking-brand: 0.3em;
+  --tracking-brand-tight: 0.18em;
+}
+
+/*
+ * Letterspaced small-caps eyebrow — the `CONSULTING` treatment from the
+ * logo, reused as the section tagline voice.
+ */
+@utility brand-eyebrow {
+  font-family: var(--font-body);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-brand-tight);
+  color: var(--color-gold);
+}
+
+/* A centered gold hairline with optional breathing room, used under headings. */
+@utility brand-rule {
+  display: block;
+  height: 1px;
+  border: 0;
+  background: linear-gradient(to right, transparent, var(--color-gold), transparent);
+}
+
+/*
+ * Gold hairline seam drawn at the top edge of a band, marking the join
+ * between an ivory and a navy section.
+ */
+@utility brand-seam {
+  &::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      color-mix(in srgb, var(--color-gold) 75%, transparent) 15%,
+      color-mix(in srgb, var(--color-gold) 75%, transparent) 85%,
+      transparent
+    );
+  }
+}
+
+/*
+ * Deco corner frame — the thin gold rectangle inset from the edge, echoing
+ * the bordered lockup (#09) and the business-card rule on the brand board.
+ */
+@utility brand-frame {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--color-gold) 45%, transparent);
+    pointer-events: none;
+  }
+}
+
+/*
+ * Make `.dark` work on a SUBTREE, not just on <html>.
+ *
+ * AstroWind only ever puts `.dark` on the root element, so its Tailwind theme
+ * can indirect through `--color-default: var(--aw-color-text-default)` inside
+ * `@theme`. That indirection is resolved where `--color-*` is DECLARED — on
+ * `:root` — so re-pointing `--aw-*` further down the tree has no effect on it.
+ *
+ * The alternating band system needs per-section dark subtrees (every widget's
+ * `isDark` prop puts `.dark` on its own container), so the Tailwind-facing
+ * variables are re-declared here. Re-declaring them on the same element that
+ * CustomStyles.astro re-points `--aw-*` on makes the substitution resolve in
+ * that element's context, and descendants inherit the corrected values.
+ */
+.dark {
+  --color-primary: var(--aw-color-primary);
+  --color-secondary: var(--aw-color-secondary);
+  --color-accent: var(--aw-color-accent);
+  --color-default: var(--aw-color-text-default);
+  --color-muted: var(--aw-color-text-muted);
+
+  color: var(--aw-color-text-default);
+}
+
+/*
+ * `text-heading` is referenced by AstroWind's Headline but never defined
+ * upstream, so headings silently fall back to the body color. Defining it
+ * against the token means headings track the band they sit in.
+ */
+@utility text-heading {
+  color: var(--aw-color-text-heading);
+}

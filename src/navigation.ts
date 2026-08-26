@@ -1,182 +1,72 @@
-import { getPermalink, getBlogPermalink, getAsset } from './utils/permalinks';
+import { getPermalink, getBlogPermalink } from './utils/permalinks';
 
 export const headerData = {
   links: [
     {
-      text: 'Homes',
+      text: 'Hizmetler',
       links: [
-        {
-          text: 'SaaS',
-          href: getPermalink('/homes/saas'),
-        },
-        {
-          text: 'Startup',
-          href: getPermalink('/homes/startup'),
-        },
-        {
-          text: 'Mobile App',
-          href: getPermalink('/homes/mobile-app'),
-        },
-        {
-          text: 'Personal',
-          href: getPermalink('/homes/personal'),
-        },
+        { text: 'Dadı ve Bebek Bakıcısı', href: getPermalink('/#hizmetler') },
+        { text: 'Yaşlı ve Hasta Refakati', href: getPermalink('/#hizmetler') },
+        { text: 'Ev İşletmesi Personeli', href: getPermalink('/#hizmetler') },
+        { text: 'Özel Şoför ve Aşçı', href: getPermalink('/#hizmetler') },
       ],
     },
-    {
-      text: 'Pages',
-      links: [
-        {
-          text: 'Features (Anchor Link)',
-          href: getPermalink('/#features'),
-        },
-        {
-          text: 'Services',
-          href: getPermalink('/services'),
-        },
-        {
-          text: 'Pricing',
-          href: getPermalink('/pricing'),
-        },
-        {
-          text: 'About us',
-          href: getPermalink('/about'),
-        },
-        {
-          text: 'Contact',
-          href: getPermalink('/contact'),
-        },
-        {
-          text: 'Terms',
-          href: getPermalink('/terms'),
-        },
-        {
-          text: 'Privacy policy',
-          href: getPermalink('/privacy'),
-        },
-      ],
-    },
-    {
-      text: 'Landing',
-      links: [
-        {
-          text: 'Lead Generation',
-          href: getPermalink('/landing/lead-generation'),
-        },
-        {
-          text: 'Long-form Sales',
-          href: getPermalink('/landing/sales'),
-        },
-        {
-          text: 'Click-Through',
-          href: getPermalink('/landing/click-through'),
-        },
-        {
-          text: 'Product Details (or Services)',
-          href: getPermalink('/landing/product'),
-        },
-        {
-          text: 'Coming Soon or Pre-Launch',
-          href: getPermalink('/landing/pre-launch'),
-        },
-        {
-          text: 'Subscription',
-          href: getPermalink('/landing/subscription'),
-        },
-      ],
-    },
-    {
-      text: 'Blog',
-      links: [
-        {
-          text: 'Blog List',
-          href: getBlogPermalink(),
-        },
-        {
-          text: 'Article',
-          href: getPermalink('get-started-website-with-astro-tailwind-css', 'post'),
-        },
-        {
-          text: 'Article (with MDX)',
-          href: getPermalink('markdown-elements-demo-post', 'post'),
-        },
-        {
-          text: 'Category Page',
-          href: getPermalink('tutorials', 'category'),
-        },
-        {
-          text: 'Tag Page',
-          href: getPermalink('astro', 'tag'),
-        },
-      ],
-    },
-    {
-      text: 'Widgets',
-      href: '#',
-    },
+    { text: 'Sürecimiz', href: getPermalink('/#surec') },
+    { text: 'Hakkımızda', href: getPermalink('/#hakkimizda') },
+    { text: 'Günlük', href: getBlogPermalink() },
+    { text: 'Sıkça Sorulanlar', href: getPermalink('/#sss') },
   ],
-  actions: [{ text: 'Download', href: 'https://github.com/arthelokyo/astrowind', target: '_blank' }],
+  actions: [{ text: 'Görüşme Talebi', href: getPermalink('/#iletisim') }],
 };
 
 export const footerData = {
   links: [
     {
-      title: 'Product',
+      title: 'Hizmetler',
       links: [
-        { text: 'Features', href: '#' },
-        { text: 'Security', href: '#' },
-        { text: 'Team', href: '#' },
-        { text: 'Enterprise', href: '#' },
-        { text: 'Customer stories', href: '#' },
-        { text: 'Pricing', href: '#' },
-        { text: 'Resources', href: '#' },
+        { text: 'Dadı ve Bebek Bakıcısı', href: getPermalink('/#hizmetler') },
+        { text: 'Yaşlı ve Hasta Refakati', href: getPermalink('/#hizmetler') },
+        { text: 'Ev İşletmesi Personeli', href: getPermalink('/#hizmetler') },
+        { text: 'Özel Şoför ve Aşçı', href: getPermalink('/#hizmetler') },
       ],
     },
     {
-      title: 'Platform',
+      title: 'Kurumsal',
       links: [
-        { text: 'Developer API', href: '#' },
-        { text: 'Partners', href: '#' },
-        { text: 'Atom', href: '#' },
-        { text: 'Electron', href: '#' },
-        { text: 'AstroWind Desktop', href: '#' },
+        { text: 'Hakkımızda', href: getPermalink('/#hakkimizda') },
+        { text: 'Sürecimiz', href: getPermalink('/#surec') },
+        { text: 'Sıkça Sorulanlar', href: getPermalink('/#sss') },
+        { text: 'Günlük', href: getBlogPermalink() },
       ],
     },
     {
-      title: 'Support',
+      title: 'Adaylar İçin',
       links: [
-        { text: 'Docs', href: '#' },
-        { text: 'Community Forum', href: '#' },
-        { text: 'Professional Services', href: '#' },
-        { text: 'Skills', href: '#' },
-        { text: 'Status', href: '#' },
+        { text: 'Aday Başvurusu', href: getPermalink('/#iletisim') },
+        { text: 'Referans Süreci', href: getPermalink('/#surec') },
+        { text: 'Çalışma Koşulları', href: getPermalink('/#sss') },
       ],
     },
     {
-      title: 'Company',
+      title: 'İletişim',
       links: [
-        { text: 'About', href: '#' },
-        { text: 'Blog', href: '#' },
-        { text: 'Careers', href: '#' },
-        { text: 'Press', href: '#' },
-        { text: 'Inclusion', href: '#' },
-        { text: 'Social Impact', href: '#' },
-        { text: 'Shop', href: '#' },
+        { text: 'Görüşme Talebi', href: getPermalink('/#iletisim') },
+        { text: 'info@efkaconsulting.com', href: 'mailto:info@efkaconsulting.com' },
+        { text: 'Nispetiye Cad., Etiler, İstanbul', href: getPermalink('/#iletisim') },
       ],
     },
   ],
   secondaryLinks: [
-    { text: 'Terms', href: getPermalink('/terms') },
-    { text: 'Privacy Policy', href: getPermalink('/privacy') },
+    { text: 'Kullanım Koşulları', href: getPermalink('/terms') },
+    { text: 'Gizlilik Politikası', href: getPermalink('/privacy') },
+    { text: 'KVKK Aydınlatma Metni', href: getPermalink('/privacy') },
   ],
   socialLinks: [
-    { ariaLabel: 'X', icon: 'tabler:brand-x', href: '#' },
     { ariaLabel: 'Instagram', icon: 'tabler:brand-instagram', href: '#' },
-    { ariaLabel: 'Facebook', icon: 'tabler:brand-facebook', href: '#' },
-    { ariaLabel: 'RSS', icon: 'tabler:rss', href: getAsset('/rss.xml') },
-    { ariaLabel: 'Github', icon: 'tabler:brand-github', href: 'https://github.com/arthelokyo/astrowind' },
+    { ariaLabel: 'LinkedIn', icon: 'tabler:brand-linkedin', href: '#' },
+    { ariaLabel: 'E-posta', icon: 'tabler:mail', href: 'mailto:info@efkaconsulting.com' },
   ],
   footNote: `
-    Made by <a class="text-blue-600 underline dark:text-muted" href="https://github.com/arthelokyo"> Arthelokyo</a> · All rights reserved.
+    <span class="font-heading text-base">efka</span> consulting · Tüm hakları saklıdır.
   `,
 };

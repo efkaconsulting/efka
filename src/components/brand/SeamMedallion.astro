@@ -1,0 +1,36 @@
+---
+/*
+ * The efka mark, centered on the seam between two bands.
+ *
+ * Sits in normal flow BETWEEN two sections in a zero-height row, then pulls
+ * itself up by half its size so it straddles the join. Zero height means it
+ * adds no vertical space and never shifts the band rhythm; the surrounding
+ * sections need no padding changes.
+ *
+ * `tone` is the band ABOVE it — the medallion's disc matches that band so the
+ * mark reads as if punched out of it.
+ */
+import { Image } from 'astro:assets';
+import mark from '~/assets/images/efka-mark.png';
+
+interface Props {
+  tone?: 'navy' | 'ivory';
+  class?: string;
+}
+
+const { tone = 'navy', class: className = '' } = Astro.props;
+---
+
+<div class:list={['relative z-20 flex h-0 justify-center', className]} aria-hidden="true">
+  <div
+    class:list={[
+      // No border on the disc: the mark carries its own gold circle, and a
+      // second ring around it reads as a mistake rather than a frame.
+      'flex -translate-y-1/2 items-center justify-center rounded-full shadow-[0_2px_18px_rgba(11,23,40,0.18)]',
+      'h-20 w-20 md:h-24 md:w-24',
+      tone === 'navy' ? 'bg-navy' : 'bg-ivory',
+    ]}
+  >
+    <Image src={mark} alt="" width={96} height={96} densities={[1, 2]} loading="eager" class="h-full w-full" />
+  </div>
+</div>

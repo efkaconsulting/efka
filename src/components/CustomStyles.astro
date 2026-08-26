@@ -1,65 +1,59 @@
 ---
-// Font family is provided by Astro's native Fonts API (see `fonts` in
-// astro.config.ts and <Font /> in Layout.astro), exposed as `--font-inter`.
-// To switch typefaces, change the `fonts` entry and repoint `--aw-font-*` below.
-
-// 'DM Sans'
-// Nunito
-// Dosis
-// Outfit
-// Roboto
-// Literata
-// 'IBM Plex Sans'
-// Karla
-// Poppins
-// 'Fira Sans'
-// 'Libre Franklin'
-// Inconsolata
-// Raleway
-// Oswald
-// 'Space Grotesk'
-// Urbanist
+// Maps AstroWind's `--aw-*` theme contract onto the efka brand tokens defined
+// in `src/assets/styles/brand.css`. Keeping the mapping here — rather than
+// editing AstroWind's utilities directly — means the brand can be swapped by
+// repointing these variables, and upstream template updates stay mergeable.
+//
+// `:root` is the IVORY band (the page default); `.dark` is the NAVY band.
+// Every widget already accepts `isDark`, which adds `.dark` to its container,
+// so alternating bands need no per-widget changes.
+//
+// Fonts come from Astro's native Fonts API (see `fonts` in astro.config.ts and
+// <Font /> in Layout.astro), exposed as `--font-cormorant` / `--font-montserrat`.
 ---
 
 <style is:inline>
   :root {
-    --aw-font-sans: var(--font-inter);
-    --aw-font-serif: var(--font-inter);
-    --aw-font-heading: var(--font-inter);
+    --aw-font-sans: var(--font-montserrat);
+    --aw-font-serif: var(--font-cormorant);
+    --aw-font-heading: var(--font-cormorant);
 
-    --aw-color-primary: rgb(1 97 239);
-    --aw-color-secondary: rgb(1 84 207);
-    --aw-color-accent: rgb(109 40 217);
+    /* Gold is the accent; navy carries primary actions on ivory ground. */
+    --aw-color-primary: #0b1728;
+    --aw-color-secondary: #977f52;
+    --aw-color-accent: #977f52;
 
-    --aw-color-text-heading: rgb(0 0 0);
-    --aw-color-text-default: rgb(16 16 16);
-    --aw-color-text-muted: rgb(16 16 16 / 66%);
-    --aw-color-bg-page: rgb(255 255 255);
+    --aw-color-text-heading: #0b1728;
+    --aw-color-text-default: rgb(11 23 40 / 88%);
+    --aw-color-text-muted: rgb(11 23 40 / 62%);
+    --aw-color-bg-page: #f4f0e8;
 
-    --aw-color-bg-page-dark: rgb(3 6 32);
+    --aw-color-bg-page-dark: #0b1728;
 
     ::selection {
-      background-color: lavender;
+      background-color: #b49a6a;
+      color: #0b1728;
     }
   }
 
   .dark {
-    --aw-font-sans: var(--font-inter);
-    --aw-font-serif: var(--font-inter);
-    --aw-font-heading: var(--font-inter);
+    --aw-font-sans: var(--font-montserrat);
+    --aw-font-serif: var(--font-cormorant);
+    --aw-font-heading: var(--font-cormorant);
 
-    --aw-color-primary: rgb(1 97 239);
-    --aw-color-secondary: rgb(1 84 207);
-    --aw-color-accent: rgb(109 40 217);
+    /* On navy, gold becomes the primary action so buttons stay legible. */
+    --aw-color-primary: #b49a6a;
+    --aw-color-secondary: #c9b28a;
+    --aw-color-accent: #c9b28a;
 
-    --aw-color-text-heading: rgb(247, 248, 248);
-    --aw-color-text-default: rgb(229 236 246);
-    --aw-color-text-muted: rgb(229 236 246 / 66%);
-    --aw-color-bg-page: rgb(3 6 32);
+    --aw-color-text-heading: #f4f0e8;
+    --aw-color-text-default: rgb(244 240 232 / 88%);
+    --aw-color-text-muted: rgb(244 240 232 / 62%);
+    --aw-color-bg-page: #0b1728;
 
     ::selection {
-      background-color: black;
-      color: snow;
+      background-color: #b49a6a;
+      color: #0b1728;
     }
   }
 </style>

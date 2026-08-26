@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* efka brand tokens & utilities — see the header of brand.css. */
+@import './brand.css';
+
 @plugin "@tailwindcss/typography";
 
 @variant dark (&:where(.dark, .dark *));
@@ -17,7 +20,7 @@
     var(--aw-font-sans, ui-sans-serif), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
     'Segoe UI Symbol', 'Noto Color Emoji';
   --font-serif: var(--aw-font-serif, ui-serif), ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-  --font-heading: var(--aw-font-heading, ui-sans-serif), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--aw-font-heading, ui-serif), Georgia, 'Times New Roman', serif;
 
   --animate-fade: fadeInUp 1s both;
 
@@ -54,11 +57,11 @@
 }
 
 @utility btn {
-  @apply inline-flex items-center justify-center rounded-full border-gray-400 border bg-transparent font-medium text-center text-base text-page leading-snug transition py-3.5 px-6 md:px-8 ease-in duration-200 focus:ring-blue-500 focus:ring-offset-blue-200 focus:ring-2 focus:ring-offset-2 hover:bg-gray-100 hover:border-gray-600 dark:text-slate-300 dark:border-slate-500 dark:hover:bg-slate-800 dark:hover:border-slate-800 cursor-pointer;
+  @apply inline-flex cursor-pointer items-center justify-center border border-gold/60 bg-transparent px-7 py-3.5 text-center font-sans text-xs leading-snug font-medium tracking-[0.18em] text-default uppercase transition duration-200 ease-in md:px-9 hover:border-gold hover:bg-gold/10 focus:ring-2 focus:ring-gold/50 focus:ring-offset-2 focus:ring-offset-transparent focus:outline-none dark:border-gold/50 dark:hover:border-gold dark:hover:bg-gold/15;
 }
 
 @utility btn-primary {
-  @apply btn font-semibold bg-primary text-white border-primary hover:bg-secondary hover:border-secondary hover:text-white dark:text-white dark:bg-primary dark:border-primary dark:hover:border-secondary dark:hover:bg-secondary;
+  @apply btn border-navy bg-navy text-ivory hover:border-gold hover:bg-gold hover:text-navy dark:border-gold dark:bg-gold dark:text-navy dark:hover:border-gold-400 dark:hover:bg-gold-400;
 }
 
 @utility btn-secondary {
@@ -66,17 +69,46 @@
 }
 
 @utility btn-tertiary {
-  @apply btn border-none shadow-none text-muted hover:text-gray-900 dark:text-gray-400 dark:hover:text-white;
+  @apply btn border-none px-2 tracking-[0.14em] text-muted shadow-none hover:bg-transparent hover:text-gold dark:hover:bg-transparent dark:hover:text-gold;
+}
+
+/*
+ * The header is a dark subtree on every page (see PageLayout), so it must
+ * carry its own navy ground rather than sitting transparent. Without this it
+ * renders ivory-on-ivory on any page that does not open with the navy hero —
+ * the blog, the article pages, 404.
+ */
+#header.dark > div:first-child {
+  @apply border-b border-gold/25 bg-navy;
 }
 
 #header.scroll > div:first-child {
-  @apply bg-page md:bg-white/90 md:backdrop-blur-md;
-  box-shadow: 0 0.375rem 1.5rem 0 rgb(140 152 164 / 13%);
+  @apply border-b border-gold/35 bg-page md:bg-[#f4f0e8f2] md:backdrop-blur-md;
+  box-shadow: 0 0.25rem 1.25rem 0 rgb(11 23 40 / 8%);
 }
 .dark #header.scroll > div:first-child,
 #header.scroll.dark > div:first-child {
-  @apply bg-page md:bg-[#030621e6] border-b border-gray-500/20;
+  @apply border-b border-gold/35 bg-page md:bg-[#0b1728f2];
   box-shadow: none;
+}
+
+/*
+ * Display headings use Cormorant Garamond, which is a high-contrast Garamond:
+ * it wants light weights, generous line-height and no negative tracking.
+ * AstroWind's widgets ship `font-bold tracking-tighter` inline, so this
+ * reasserts the brand's typographic voice without forking every widget.
+ */
+h1,
+h2,
+h3,
+.font-heading {
+  font-weight: 400;
+  letter-spacing: 0.005em;
+}
+
+h1,
+h2 {
+  line-height: 1.15;
 }
 
 #header.expanded nav {
