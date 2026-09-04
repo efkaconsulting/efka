@@ -19,16 +19,27 @@ import { ClientRouter } from 'astro:transitions';
 
 import type { MetaData as MetaDataType } from '~/types';
 
+import { DEFAULT_LOCALE, LOCALE_HTML_LANG, PATH_ALTERNATES, langOf, localePath } from '~/i18n/routes';
+import type { Lang } from '~/i18n/routes';
+
 export interface Props {
   metadata?: MetaDataType;
+  /** Locale of the page. Defaults to the locale the URL belongs to. */
+  lang?: Lang;
 }
 
-const { metadata = {} } = Astro.props;
-const { language, textDirection } = I18N;
+const pathname = new URL(Astro.url).pathname;
+
+const { metadata = {}, lang = langOf(pathname) } = Astro.props;
+const { textDirection } = I18N;
+
+// hreflang alternates, so each page declares its counterpart in the other
+// locale rather than leaving search engines to guess they are translations.
+const alternates = PATH_ALTERNATES[pathname.replace(/\/+$/, '') || '/'];
 ---
 
 <!doctype html>
-<html lang={language} dir={textDirection} class="2xl:text-[20px]">
+<html lang={LOCALE_HTML_LANG[lang]} dir={textDirection} class="2xl:text-[20px]">
   <head>
     <CommonMeta />
     <Favicons />
@@ -40,7 +51,13 @@ const { language, textDirection } = I18N;
     <SiteVerification />
     <Analytics />
 
-    <link rel="preconnect" href="https://images.unsplash.com" />
+    {
+      alternates &&
+        Object.entries(alternates).map(([code, path]) => (
+          <link rel="alternate" hreflang={code} href={new URL(path, Astro.site)} />
+        ))
+    }
+    <link rel="alternate" hreflang="x-default" href={new URL(localePath('home', DEFAULT_LOCALE), Astro.site)} />
 
     <!-- Comment the line below to disable View Transitions -->
     <ClientRouter fallback="swap" />

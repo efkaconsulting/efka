@@ -26,6 +26,18 @@ const whenExternalScripts = (items: (() => AstroIntegration) | (() => AstroInteg
 export default defineConfig({
   output: 'static',
 
+  // Turkish is the default locale and sits at the root; English sits under
+  // `/en/`. The slug each page carries in each locale lives in
+  // src/i18n/routes.ts, which navigation and the language switcher read.
+  i18n: {
+    locales: ['tr', 'en'],
+    defaultLocale: 'tr',
+    routing: {
+      prefixDefaultLocale: false,
+      redirectToDefaultLocale: false,
+    },
+  },
+
   // Prefetch links as they enter the viewport for snappier navigations
   // (works together with <ClientRouter />, which enables prefetch by default).
   prefetch: {

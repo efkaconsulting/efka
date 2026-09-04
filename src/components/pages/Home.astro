@@ -1,0 +1,102 @@
+---
+/*
+ * Home page.
+ *
+ * Composition only; every string comes from the locale dictionary.
+ *
+ * BAND RHYTHM — the page alternates deep navy and ivory full-bleed sections,
+ * separated by a gold hairline seam. Each section pairs two things:
+ *
+ *   isDark          → flips AstroWind's text tokens and `dark:` variants
+ *   <BandBg tone /> → paints the ground and draws the seam
+ *
+ * Keep them in sync (isDark ⇔ tone="navy") and keep the tones alternating.
+ */
+import Layout from '~/layouts/PageLayout.astro';
+
+import BandBg from '~/components/brand/BandBg.astro';
+import SeamMedallion from '~/components/brand/SeamMedallion.astro';
+
+import Hero from '~/components/widgets/Hero.astro';
+import Features from '~/components/widgets/Features.astro';
+import Features2 from '~/components/widgets/Features2.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+
+import { useContent } from '~/i18n/content';
+import { localePath } from '~/i18n/routes';
+import type { Lang } from '~/i18n/routes';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+
+const c = useContent(lang);
+const t = c.home;
+---
+
+<Layout metadata={t.meta} lang={lang}>
+  <!-- Hero — NAVY (first band, so no seam above it) ******************** -->
+
+  <div class="dark">
+    <Hero tagline={t.hero.tagline} actions={t.hero.actions}>
+      <Fragment slot="bg">
+        <BandBg tone="navy" seam={false} />
+      </Fragment>
+
+      <Fragment slot="title">
+        <span class="text-heading" set:html={t.hero.title} />
+      </Fragment>
+
+      <Fragment slot="subtitle">
+        <span set:html={t.hero.subtitle} />
+      </Fragment>
+
+      <Fragment slot="content">
+        <hr class="brand-rule mx-auto mt-14 w-40 opacity-70" />
+      </Fragment>
+    </Hero>
+  </div>
+
+  <!-- The mark, straddling the navy/ivory seam ************************ -->
+
+  <SeamMedallion tone="navy" />
+
+  <!-- The three pillars — IVORY *************************************** -->
+
+  <Features columns={3} items={t.pillars}>
+    <Fragment slot="bg">
+      <BandBg tone="ivory" />
+    </Fragment>
+  </Features>
+
+  <!-- Workforce solutions, pointing at the services page — NAVY ******* -->
+
+  <CallToAction
+    isDark
+    title={t.solutions.title}
+    subtitle={t.solutions.subtitle}
+    actions={[{ variant: 'primary', text: t.solutions.readMore, href: localePath('services', lang) }]}
+  >
+    <Fragment slot="bg">
+      <BandBg tone="navy" />
+    </Fragment>
+  </CallToAction>
+
+  <!-- Why EFKA? — IVORY *********************************************** -->
+
+  <Features2 title={t.whyEfka.title} items={t.whyEfka.items} columns={2}>
+    <Fragment slot="bg">
+      <BandBg tone="ivory" />
+    </Fragment>
+  </Features2>
+
+  <!-- Contact — NAVY ************************************************** -->
+
+  <CallToAction isDark title={c.contact.hero.title} subtitle={c.contact.hero.subtitle} actions={[c.contact.cta]}>
+    <Fragment slot="bg">
+      <BandBg tone="navy" />
+    </Fragment>
+  </CallToAction>
+</Layout>

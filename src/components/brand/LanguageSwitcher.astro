@@ -1,0 +1,77 @@
+---
+/*
+ * TR | EN, rendered in the header.
+ *
+ * The header carries `transition:persist`, so this element survives a view
+ * transition and its server-rendered hrefs would then describe the page the
+ * visitor arrived on rather than the one they are reading. The inline script
+ * re-resolves both links on every `astro:page-load` from the path table, the
+ * same way Header.astro re-computes its active-link class.
+ *
+ * Without JavaScript the links still work; they simply point at whatever page
+ * was first rendered, which is correct for a visitor who has not navigated.
+ */
+import { LOCALES, LOCALE_LABEL, PATH_ALTERNATES, langOf, localePath } from '~/i18n/routes';
+
+const pathname = new URL(Astro.url).pathname;
+const active = langOf(pathname);
+const alternates = PATH_ALTERNATES[pathname.replace(/\/+$/, '') || '/'];
+---
+
+<div class="flex items-center text-sm tracking-wide" data-lang-switcher>
+  {
+    LOCALES.map((lang, i) => (
+      <>
+        {i > 0 && (
+          <span class="text-muted px-1 opacity-40" aria-hidden="true">
+            /
+          </span>
+        )}
+        <a
+          href={alternates?.[lang] ?? localePath('home', lang)}
+          data-lang={lang}
+          hreflang={lang}
+          aria-current={lang === active ? 'true' : undefined}
+          class:list={[
+            'px-1 py-1 transition duration-150 ease-in-out',
+            lang === active ? 'text-default font-semibold' : 'text-muted hover:text-link',
+          ]}
+        >
+          {LOCALE_LABEL[lang]}
+        </a>
+      </>
+    ))
+  }
+</div>
+
+<script
+  is:inline
+  define:vars={{
+    alternatesByPath: PATH_ALTERNATES,
+    fallback: Object.fromEntries(LOCALES.map((l) => [l, localePath('home', l)])),
+  }}
+>
+  (() => {
+    const resolve = () => {
+      const path = window.location.pathname.replace(/\/+$/, '') || '/';
+      const map = alternatesByPath[path] ?? fallback;
+      const here = Object.keys(map).find((lang) => map[lang] === path);
+
+      document.querySelectorAll('[data-lang-switcher] a[data-lang]').forEach((a) => {
+        const lang = a.getAttribute('data-lang');
+        if (map[lang]) a.setAttribute('href', map[lang]);
+
+        const isActive = lang === here;
+        a.classList.toggle('text-default', isActive);
+        a.classList.toggle('font-semibold', isActive);
+        a.classList.toggle('text-muted', !isActive);
+        a.classList.toggle('hover:text-link', !isActive);
+        if (isActive) a.setAttribute('aria-current', 'true');
+        else a.removeAttribute('aria-current');
+      });
+    };
+
+    resolve();
+    document.addEventListener('astro:page-load', resolve);
+  })();
+</script>
