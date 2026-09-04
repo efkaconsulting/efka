@@ -449,7 +449,11 @@ export const en: typeof tr = {
     cta: { variant: 'primary' as const, text: 'Request a Consultation', href: 'mailto:info@efkaconsulting.com' },
     details: [
       { title: 'Email', description: 'info@efkaconsulting.com', icon: 'tabler:mail' },
-      { title: 'Address', description: 'Nispetiye Cad., Etiler, İstanbul', icon: 'tabler:map-pin' },
+      {
+        title: 'Address',
+        description: 'Organize Sanayi Bölgesi 20.Cadde No:45 31. Caddesi No:2,<br />38070 Kayseri, Türkiye',
+        icon: 'tabler:map-pin',
+      },
     ],
   },
 

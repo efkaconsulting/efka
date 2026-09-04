@@ -447,7 +447,11 @@ export const tr = {
     cta: { variant: 'primary' as const, text: 'Görüşme Talep Edin', href: 'mailto:info@efkaconsulting.com' },
     details: [
       { title: 'E-posta', description: 'info@efkaconsulting.com', icon: 'tabler:mail' },
-      { title: 'Adres', description: 'Nispetiye Cad., Etiler, İstanbul', icon: 'tabler:map-pin' },
+      {
+        title: 'Adres',
+        description: 'Organize Sanayi Bölgesi 20.Cadde No:45 31. Caddesi No:2,<br />38070 Kayseri, Türkiye',
+        icon: 'tabler:map-pin',
+      },
     ],
   },
 
