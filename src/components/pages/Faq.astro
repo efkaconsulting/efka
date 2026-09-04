@@ -1,0 +1,63 @@
+---
+/*
+ * Frequently asked questions.
+ */
+import Layout from '~/layouts/PageLayout.astro';
+
+import BandBg from '~/components/brand/BandBg.astro';
+import SeamMedallion from '~/components/brand/SeamMedallion.astro';
+
+import Hero from '~/components/widgets/Hero.astro';
+import FAQs from '~/components/widgets/FAQs.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+
+import { useContent } from '~/i18n/content';
+import type { Lang } from '~/i18n/routes';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+
+const c = useContent(lang);
+const t = c.faq;
+---
+
+<Layout metadata={t.meta} lang={lang}>
+  <!-- Sık Sorulan Sorular — NAVY (first band, no seam above) ********** -->
+
+  <div class="dark">
+    <Hero tagline={t.hero.tagline}>
+      <Fragment slot="bg">
+        <BandBg tone="navy" seam={false} />
+      </Fragment>
+
+      <Fragment slot="title">
+        <span class="text-heading">{t.hero.title}</span>
+      </Fragment>
+
+      <Fragment slot="content">
+        <hr class="brand-rule mx-auto mt-14 w-40 opacity-70" />
+      </Fragment>
+    </Hero>
+  </div>
+
+  <SeamMedallion tone="navy" />
+
+  <!-- The questions — IVORY ******************************************* -->
+
+  <FAQs items={t.items} columns={2} classes={{ container: 'max-w-6xl' }}>
+    <Fragment slot="bg">
+      <BandBg tone="ivory" />
+    </Fragment>
+  </FAQs>
+
+  <!-- Contact — NAVY ************************************************** -->
+
+  <CallToAction isDark title={c.contact.hero.title} subtitle={c.contact.hero.subtitle} actions={[c.contact.cta]}>
+    <Fragment slot="bg">
+      <BandBg tone="navy" />
+    </Fragment>
+  </CallToAction>
+</Layout>

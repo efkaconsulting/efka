@@ -1,31 +1,61 @@
 ---
+/*
+ * Shell for every content page: header, main, footer banner, footer.
+ *
+ * Takes the page's locale and reads navigation and footer copy from the
+ * matching dictionary, so neither the header nor the footer holds any wording
+ * of its own.
+ */
 import Layout from '~/layouts/Layout.astro';
 import Header from '~/components/widgets/Header.astro';
 import Footer from '~/components/widgets/Footer.astro';
-import Announcement from '~/components/widgets/Announcement.astro';
+import FooterBanner from '~/components/brand/FooterBanner.astro';
 
-import { headerData, footerData } from '~/navigation';
+import { useContent } from '~/i18n/content';
+import { DEFAULT_LOCALE, localePath } from '~/i18n/routes';
+import type { Lang } from '~/i18n/routes';
 
 import type { MetaData } from '~/types';
 
 export interface Props {
   metadata?: MetaData;
+  lang?: Lang;
 }
 
-const { metadata } = Astro.props;
+const { metadata, lang = DEFAULT_LOCALE } = Astro.props;
+
+const c = useContent(lang);
+
+const headerData = {
+  links: c.nav.links,
+  actions: c.nav.actions,
+};
+
+const footerData = {
+  links: c.footer.columns,
+  secondaryLinks: c.footer.secondaryLinks,
+  socialLinks: [
+    { ariaLabel: c.footer.socialLabels.instagram, icon: 'tabler:brand-instagram', href: '#' },
+    { ariaLabel: c.footer.socialLabels.linkedin, icon: 'tabler:brand-linkedin', href: '#' },
+    { ariaLabel: c.footer.socialLabels.email, icon: 'tabler:mail', href: 'mailto:info@efkaconsulting.com' },
+  ],
+  footNote: `
+    <span class="font-heading text-base">efka</span> ${c.footer.footNote}
+  `,
+  description: c.footer.description,
+  homeHref: localePath('home', lang),
+};
 ---
 
-<Layout metadata={metadata}>
-  <slot name="announcement">
-    <Announcement />
-  </slot>
+<Layout metadata={metadata} lang={lang}>
   <slot name="header">
-    <Header {...headerData} isDark isSticky />
+    <Header {...headerData} isDark isSticky showLanguageSwitcher position="right" />
   </slot>
   <main>
     <slot />
   </main>
   <slot name="footer">
+    <FooterBanner alt={c.bannerAlt} />
     <Footer {...footerData} />
   </slot>
 </Layout>

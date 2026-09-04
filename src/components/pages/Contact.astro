@@ -1,0 +1,58 @@
+---
+/*
+ * Contact page.
+ *
+ * No form: the supplied documents specify seven fields, but building the form
+ * was deferred, so this page carries the mailto call to action and the direct
+ * contact details. See docs/superpowers/specs/2026-09-04-efka-content-i18n-design.md.
+ */
+import Layout from '~/layouts/PageLayout.astro';
+
+import BandBg from '~/components/brand/BandBg.astro';
+import SeamMedallion from '~/components/brand/SeamMedallion.astro';
+
+import Hero from '~/components/widgets/Hero.astro';
+import Features2 from '~/components/widgets/Features2.astro';
+
+import { useContent } from '~/i18n/content';
+import type { Lang } from '~/i18n/routes';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+
+const c = useContent(lang);
+const t = c.contact;
+---
+
+<Layout metadata={t.meta} lang={lang}>
+  <!-- İletişim — NAVY (first band, no seam above) ********************* -->
+
+  <div class="dark">
+    <Hero tagline={t.hero.tagline} subtitle={t.hero.subtitle} actions={[t.cta]}>
+      <Fragment slot="bg">
+        <BandBg tone="navy" seam={false} />
+      </Fragment>
+
+      <Fragment slot="title">
+        <span class="text-heading">{t.hero.title}</span>
+      </Fragment>
+
+      <Fragment slot="content">
+        <hr class="brand-rule mx-auto mt-14 w-40 opacity-70" />
+      </Fragment>
+    </Hero>
+  </div>
+
+  <SeamMedallion tone="navy" />
+
+  <!-- Direct contact details — IVORY ********************************** -->
+
+  <Features2 columns={2} items={t.details}>
+    <Fragment slot="bg">
+      <BandBg tone="ivory" />
+    </Fragment>
+  </Features2>
+</Layout>

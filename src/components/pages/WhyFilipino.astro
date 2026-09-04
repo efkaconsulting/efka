@@ -1,0 +1,78 @@
+---
+/*
+ * "Neden Filipinli Bakıcı?" / "Why a Filipino Caregiver?"
+ *
+ * Band rhythm as elsewhere: isDark ⇔ tone="navy", tones alternating.
+ */
+import Layout from '~/layouts/PageLayout.astro';
+
+import BandBg from '~/components/brand/BandBg.astro';
+import SeamMedallion from '~/components/brand/SeamMedallion.astro';
+
+import Hero from '~/components/widgets/Hero.astro';
+import Content from '~/components/widgets/Content.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+
+import childcareReading from '~/assets/images/childcare-reading.webp';
+
+import { useContent } from '~/i18n/content';
+import { paragraphsToHtml } from '~/utils/paragraphs';
+import type { Lang } from '~/i18n/routes';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+
+const c = useContent(lang);
+const t = c.whyFilipino;
+
+const blocks = t.blocks.map(({ title, paragraphs, icon }) => ({
+  title,
+  description: paragraphsToHtml(paragraphs),
+  icon,
+}));
+---
+
+<Layout metadata={t.meta} lang={lang}>
+  <!-- Intro — NAVY (first band, no seam above) ************************ -->
+
+  <div class="dark">
+    <Hero tagline={t.hero.tagline}>
+      <Fragment slot="bg">
+        <BandBg tone="navy" seam={false} />
+      </Fragment>
+
+      <Fragment slot="title">
+        <span class="text-heading">{t.hero.title}</span>
+      </Fragment>
+
+      <Fragment slot="subtitle">
+        {t.hero.paragraphs.map((text) => <p class="mb-4 last:mb-0">{text}</p>)}
+      </Fragment>
+
+      <Fragment slot="content">
+        <hr class="brand-rule mx-auto mt-14 w-40 opacity-70" />
+      </Fragment>
+    </Hero>
+  </div>
+
+  <SeamMedallion tone="navy" />
+
+  <!-- The four reasons, beside the reading photograph — IVORY ********* -->
+
+  <Content isReversed items={blocks} image={{ src: childcareReading, alt: t.hero.imageAlt }}>
+    <Fragment slot="bg">
+      <BandBg tone="ivory" />
+    </Fragment>
+  </Content>
+
+  <!-- Contact — NAVY ************************************************** -->
+
+  <CallToAction isDark title={c.contact.hero.title} subtitle={c.contact.hero.subtitle} actions={[c.contact.cta]}>
+    <Fragment slot="bg">
+      <BandBg tone="navy" />
+    </Fragment>
+  </CallToAction>
+</Layout>

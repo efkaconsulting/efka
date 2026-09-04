@@ -11,7 +11,7 @@ metadata:
   title:
     default: 'efka'
     template: '%s — efka'
-  description: 'Dadı, bebek bakıcısı, yaşlı refakatçisi ve ev işletmesi personeli için titizlikle referans ve sicil kontrolünden geçirilmiş, sınırlı sayıda adayla çalışan danışmanlık hizmeti.'
+  description: 'Filipinler’den uygun çalışanların bulunması, değerlendirilmesi ve Türkiye’de yasal olarak istihdam edilmesine yönelik süreci aileler ve işletmeler için tek merkezden yöneten iş gücü danışmanlığı.'
   robots:
     index: true
     follow: true
@@ -32,8 +32,11 @@ i18n:
   textDirection: ltr
 
 apps:
+  # The blog is off: the launch content supplies no posts and no blog appears in
+  # the footer menu. The block stays so `astrowind:config` still exports
+  # APP_BLOG, which src/utils/permalinks.ts reads.
   blog:
-    isEnabled: true
+    isEnabled: false
     postsPerPage: 6
 
     post:
