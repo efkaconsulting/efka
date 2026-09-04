@@ -128,11 +128,36 @@ serialized into the page, the same way `Header.astro` re-computes its
 active-link class. Verified: navigating `/hizmetler` to `/surecimiz` to `/sss`
 keeps the English link in step, and switching from `/sss` lands on `/en/faq`.
 
+## The legal pages, removed
+
+`privacy.md` and `terms.md` were the AstroWind demo text: English, dated
+January 2023, defining the company as "AstroWind LLC, 1 Cupertino, CA
+95014", and stating outright that the privacy policy was a demo. The
+Turkish footer had been linking that document as the KVKK notice.
+
+On the user's decision, the footer's legal links are removed in both
+locales and both pages are deleted, so nothing links to or serves a demo
+notice and neither appears in the sitemap. When real copy arrives it
+becomes **one combined notice, in English, shared by both locales**,
+linked from `footer.secondaryLinks`, which stays in place as an
+explicitly typed empty array. `src/layouts/MarkdownLayout.astro` is now
+unreferenced but retained, since that is what the page will use.
+
+Open item: **the site has no privacy notice, no KVKK notice and no
+terms.** That text is needed before launch.
+
 ## Left alone, flagged
 
-`privacy.md` and `terms.md` are template text, and the footer links a
-KVKK notice at the privacy URL. The documents supply no legal copy and
-none is invented. Real text is needed before launch.
+`public/decapcms/config.yml` declares a single Decap CMS collection for
+blog posts, pointing at `src/content/post`. That path was already wrong
+before this work (the posts lived in `src/data/post`), and the blog is
+now gone, so the admin UI at `/decapcms/` offers to create posts for a
+collection that does not exist. Whether to drop the CMS or repoint it at
+page content is a separate decision, so it is untouched here.
+
+The banner is 1224 px wide. It is anchored centre and cropped by the
+viewport rather than stretched, so it stays sharp, but a larger source
+would let it fill a wide display edge to edge.
 
 ## Verification
 

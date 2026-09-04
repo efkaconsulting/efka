@@ -58,11 +58,11 @@ export const en: typeof tr = {
         ],
       },
     ],
-    secondaryLinks: [
-      { text: 'Personal Data Protection Notice', href: '/privacy' },
-      { text: 'Privacy Policy', href: '/privacy' },
-      { text: 'Terms of Use', href: '/terms' },
-    ],
+    // Empty on purpose. The only legal text in the repo was the AstroWind
+    // demo notice, which named a fictional company and said so, and no real
+    // KVKK or privacy copy has been supplied. When it arrives it becomes one
+    // combined notice, in English for both locales, linked from here.
+    secondaryLinks: [] as Array<{ text: string; href: string }>,
     socialLabels: { instagram: 'Instagram', linkedin: 'LinkedIn', email: 'Email' },
     footNote: 'consulting · All rights reserved.',
   },
