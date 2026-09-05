@@ -446,9 +446,9 @@ export const en: typeof tr = {
         initial consultation, we will listen to your needs and provide a clear roadmap regarding
         suitability and the process that may be followed.`,
     },
-    cta: { variant: 'primary' as const, text: 'Request a Consultation', href: 'mailto:info@efkaconsulting.com' },
+    cta: { variant: 'primary' as const, text: 'Request a Consultation', href: 'mailto:info@efka-consulting.com' },
     details: [
-      { title: 'Email', description: 'info@efkaconsulting.com', icon: 'tabler:mail' },
+      { title: 'Email', description: 'info@efka-consulting.com', icon: 'tabler:mail' },
       {
         title: 'Address',
         description: 'Organize Sanayi Bölgesi 20.Cadde No:45 31. Caddesi No:2,<br />38070 Kayseri, Türkiye',

@@ -75,7 +75,7 @@ becomes 410 KB.
 | `hospitality.png`        | `hospitality.webp`       | "Turizm ve Konaklama"          |
 | `kurumsal workforce.png` | `manufacturing.webp`     | "Uretim ve Sanayi"             |
 
-`banner.png` carries `efka-consulting.com` and `info@efkaconsulting.com`
+`banner.png` carries `efka-consulting.com` and `info@efka-consulting.com`
 burned into a bar across the bottom. Row analysis puts that bar at rows
 353 to 417, with photo content ending at row 352, so the image is cropped
 to 1224x352. The footer already carries both the domain and the address.

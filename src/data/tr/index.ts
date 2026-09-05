@@ -444,9 +444,9 @@ export const tr = {
         görüşmede ihtiyacınızı dinleyelim, uygunluk ve izlenebilecek süreç hakkında size açık bir
         yol haritası sunalım.`,
     },
-    cta: { variant: 'primary' as const, text: 'Görüşme Talep Edin', href: 'mailto:info@efkaconsulting.com' },
+    cta: { variant: 'primary' as const, text: 'Görüşme Talep Edin', href: 'mailto:info@efka-consulting.com' },
     details: [
-      { title: 'E-posta', description: 'info@efkaconsulting.com', icon: 'tabler:mail' },
+      { title: 'E-posta', description: 'info@efka-consulting.com', icon: 'tabler:mail' },
       {
         title: 'Adres',
         description: 'Organize Sanayi Bölgesi 20.Cadde No:45 31. Caddesi No:2,<br />38070 Kayseri, Türkiye',
