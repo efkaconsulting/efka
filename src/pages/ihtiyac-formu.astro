@@ -248,10 +248,10 @@ const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
               <span lang="en" class="mt-1 block">{f.verifying.en}</span>
             </p>
             <p data-status-error hidden role="alert" class="text-center text-sm text-red-700">
-              {f.error.tr}
+              {f.error.tr}{' '}
               <a class="underline" href={`mailto:${f.errorEmail}`}>{f.errorEmail}</a>
               <span lang="en" class="mt-1 block">
-                {f.error.en}
+                {f.error.en}{' '}
                 <a class="underline" href={`mailto:${f.errorEmail}`}>{f.errorEmail}</a>
               </span>
             </p>
