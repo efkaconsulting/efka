@@ -68,9 +68,10 @@ Check three things:
 - The sheet has a **Yanıtlar** tab with a header row and one row reading
   "TEST: delete this row". Delete that row (keep the header). The log at the
   bottom of the editor says which spreadsheet, tab and row it wrote to.
-- info@efka-consulting.com received two emails: "Müşteri ihtiyaç formu: TEST:
-  delete this row", with the answers as a PDF on EFKA letterhead attached, and
-  "Formunuz bize ulaştı", the thank-you a client receives.
+- info@efka-consulting.com received "Müşteri ihtiyaç formu: TEST: delete this
+  row", with the answers as a PDF on EFKA letterhead attached. (The client's
+  thank-you, "Formunuz bize ulaştı", is only sent to the address a client types
+  into the form, so `testSetup` does not send it.)
 - The log ends with "Turnstile: secret key accepted by Cloudflare." If it says
   the secret is not set or not recognised, redo the Script Properties part of
   step 3.
@@ -159,12 +160,14 @@ then need.)
   scripts, far more than this form will need.
 - **Spam and forged requests:** every submission needs a Turnstile token that
   Cloudflare issued on efka-consulting.com, so the script URL is useless
-  without the website. On top of that, the form has a hidden field that only
-  bots fill in, the script drops submissions that arrive within three seconds
-  of the page opening, and it accepts at most 30 submissions an hour
-  (`MAX_PER_HOUR`). Rejected submissions are listed under **Executions** in the
-  Apps Script editor.
+  without the website. The script also accepts at most 30 submissions an hour
+  (`MAX_PER_HOUR`).
+- **What happened to a submission:** every submission is logged under
+  **Executions** in the Apps Script editor: where it was saved, whether the
+  notification and the thank-you went out, or why it was refused. A refused
+  submission shows the client the "please email us" message; nothing is
+  dropped silently.
 - **If the form stops accepting submissions:** check **Executions**. "Turnstile
-  rejected a submission" with "TURNSTILE_SECRET is not set" means the script
+  rejected the submission" with "TURNSTILE_SECRET is not set" means the script
   property is missing; "token issued on …" means the form was opened on a
   hostname that is not in `ALLOWED_HOSTNAMES` at the top of the script.

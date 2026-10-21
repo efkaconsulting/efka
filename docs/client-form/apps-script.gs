@@ -16,7 +16,7 @@
 
 // Shown when the web app URL is opened, so you can tell which version the live
 // deployment runs. Change it whenever the script changes.
-const SCRIPT_VERSION = '2026-10-21 (client thank-you email)';
+const SCRIPT_VERSION = '2026-10-21b (every submission logged, no hidden-field filter)';
 
 const NOTIFY_TO = 'info@efka-consulting.com';
 const SHEET_NAME = 'Yanıtlar';
@@ -33,9 +33,6 @@ const SEND_CONFIRMATION = true;
 const MAX_FIELDS = 80;
 const MAX_LABEL = 200;
 const MAX_VALUE = 5000;
-
-// Filling in this many fields takes far longer; anything quicker is a bot.
-const MIN_ELAPSED_MS = 3000;
 
 // Cloudflare Turnstile: every submission must carry a token that Cloudflare
 // issued to a visitor on one of these hostnames. The secret key is not in
@@ -62,19 +59,18 @@ function doPost(e) {
     return reply({ ok: false, error: 'bad-request' });
   }
 
-  // The website has a hidden "website" field that people never see. Bots
-  // fill it in, or submit within moments of loading the page. Answer as if
-  // it worked so they do not retry.
-  if (payload.website || Number(payload.elapsedMs) < MIN_ELAPSED_MS) {
-    return reply({ ok: true });
-  }
-
+  // Every outcome is logged, so Apps Script → Executions shows what happened
+  // to each submission. Nothing is dropped silently: a refused submission
+  // gets an error, and the client sees the "please email us" message.
   const fields = clean(payload.fields);
-  if (!fields.some((f) => f.value)) return reply({ ok: false, error: 'empty' });
+  if (!fields.some((f) => f.value)) {
+    console.warn('Refused: the submission had no answers.');
+    return reply({ ok: false, error: 'empty' });
+  }
 
   const check = verifyTurnstile(payload.turnstileToken);
   if (!check.ok) {
-    console.warn('Turnstile rejected a submission: ' + check.reason);
+    console.warn('Refused: Turnstile rejected the submission (' + check.reason + ').');
     return reply({ ok: false, error: 'verification' });
   }
 
@@ -84,10 +80,11 @@ function doPost(e) {
   lock.waitLock(20000);
   try {
     if (!withinHourlyLimit()) {
-      console.warn('Hourly limit of ' + MAX_PER_HOUR + ' submissions reached; submission refused.');
+      console.warn('Refused: the hourly limit of ' + MAX_PER_HOUR + ' submissions was reached.');
       return reply({ ok: false, error: 'busy' });
     }
-    appendRow(submittedAt, fields);
+    const written = appendRow(submittedAt, fields);
+    console.info('Saved to row ' + written.row + ' of the "' + written.sheet.getName() + '" tab.');
   } finally {
     lock.releaseLock();
   }
@@ -96,16 +93,22 @@ function doPost(e) {
   // (Apps Script → Executions) rather than reported to the client as an error.
   try {
     sendEmail(submittedAt, fields);
+    console.info('Notification emailed to ' + NOTIFY_TO + '.');
   } catch (err) {
-    console.error('Email failed: ' + err);
+    console.error('Notification email failed: ' + err);
   }
 
   const clientEmail = (fields.find((f) => f.key === 'email') || {}).value || '';
-  if (SEND_CONFIRMATION && isEmail(clientEmail)) {
+  if (!SEND_CONFIRMATION) {
+    console.info('No thank-you sent: SEND_CONFIRMATION is off.');
+  } else if (!isEmail(clientEmail)) {
+    console.info('No thank-you sent: the client gave no valid email address.');
+  } else {
     try {
       sendConfirmation(clientEmail);
+      console.info('Thank-you emailed to the client at ' + clientEmail + '.');
     } catch (err) {
-      console.error('Confirmation email failed: ' + err);
+      console.error('Thank-you email to ' + clientEmail + ' failed: ' + err);
     }
   }
 
@@ -126,7 +129,9 @@ function doGet() {
 /**
  * Run this once from the editor (select it, press Run) before deploying. It
  * asks for the permissions the script needs, then writes a test row and sends
- * a test email, so you can check both before any client uses the form.
+ * the notification to NOTIFY_TO, so you can check both before any client uses
+ * the form. The client's thank-you is only ever sent to the address a client
+ * types into the form.
  */
 function testSetup() {
   const fields = clean([
@@ -152,9 +157,6 @@ function testSetup() {
       '), and emailed ' +
       NOTIFY_TO
   );
-
-  // What a client receives, sent to you so you can see it.
-  sendConfirmation(NOTIFY_TO);
 
   console.log(checkTurnstileSecret());
 }
