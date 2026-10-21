@@ -16,7 +16,7 @@
 
 // Shown when the web app URL is opened, so you can tell which version the live
 // deployment runs. Change it whenever the script changes.
-const SCRIPT_VERSION = '2026-10-21d (sends from info@ when allowed)';
+const SCRIPT_VERSION = '2026-10-21e (sends from donotreply@ when allowed)';
 
 const NOTIFY_TO = 'info@efka-consulting.com';
 const SHEET_NAME = 'Yanıtlar';
@@ -33,7 +33,10 @@ const SENDER_NAME = 'EFKA Web Formu';
 // account itself, and testSetup says so. Once it is added in that account's
 // Gmail (Settings → Accounts → "Send mail as"), emails come from it with no
 // change here. Leave it empty to always send from the account itself.
-const SEND_FROM = 'info@efka-consulting.com';
+// donotreply@ rather than info@, which belongs to another user. Replies still
+// reach info@: the thank-you sets it as the reply-to address and asks clients
+// to write there, and the notification's reply-to is the client.
+const SEND_FROM = 'donotreply@efka-consulting.com';
 
 // A short thank-you to the client, when they gave an email address. It does
 // not repeat their answers: anyone can type any address into the form, so an

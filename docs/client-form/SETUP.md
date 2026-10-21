@@ -160,11 +160,15 @@ then need.)
 - **Limits:** each submission sends two emails (the notification and the
   client's thank-you). New and trial Workspace accounts can send about 100
   emails a day from scripts, rising with the account's age and plan.
-- **Sender address:** emails come from info@efka-consulting.com (`SEND_FROM`)
-  once the account the web app runs as may send as that address: add it in
-  that account's Gmail under **Settings → Accounts → Send mail as**. Until
-  then they come from the account itself. `testSetup` says which address is
-  used. Google does not let a script send from any other address.
+- **Sender address:** emails come from donotreply@efka-consulting.com
+  (`SEND_FROM`) once the account the web app runs as may send as that
+  address. Add `donotreply` as an alternate email of that user in the Admin
+  console (**Directory → Users → user → User information**), then add it in
+  the user's Gmail under **Settings → Accounts → Send mail as**. Until then
+  emails come from the account itself; `testSetup` says which address is used.
+  Replies go to info@ (the thank-you's reply-to) or to the client (the
+  notification's reply-to). Google does not let a script send from any other
+  address.
 - **Email to outside addresses:** the domain needs SPF and DKIM records
   (see the Google Admin console under **Apps → Google Workspace → Gmail →
   Authenticate email**), or Gmail rejects the client's thank-you. Delivery of
