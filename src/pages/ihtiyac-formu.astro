@@ -17,16 +17,30 @@ import SeamMedallion from '~/components/brand/SeamMedallion.astro';
 import Hero from '~/components/widgets/Hero.astro';
 
 import { clientForm as f, CLIENT_FORM_ENDPOINT, TURNSTILE_SITE_KEY } from '~/data/clientForm';
-import type { Bilingual } from '~/data/clientForm';
+import type { Bilingual, Field } from '~/data/clientForm';
 
 const metadata = { ...f.meta, robots: { index: false, follow: false } };
 
 // " · " rather than " / ", which many of the labels already contain.
 const both = (t: Bilingual) => (t.en === t.tr ? t.en : `${t.en} · ${t.tr}`);
+// Turkish first, as everywhere on the page.
+const trEn = (t: Bilingual) => (t.en === t.tr ? t.tr : `${t.tr} · ${t.en}`);
+
+// Validation messages for the browser's bubbles, read by the script below.
+const messages = Object.fromEntries(Object.entries(f.messages).map(([k, t]) => [k, trEn(t)]));
+
+// `text` is what the drop-down shows (it is narrow); `label` is what the sheet records.
+const ageOptions = [
+  { value: 'under1', text: '< 1', label: f.ages.underOne.tr },
+  ...Array.from({ length: 17 }, (_, i) => ({ value: String(i + 1), text: String(i + 1), label: String(i + 1) })),
+  { value: '18+', text: '18+', label: '18+' },
+];
 
 const control =
-  'block border border-gold/40 bg-white/70 px-4 py-3 text-base text-default transition placeholder:text-muted/70 focus:border-gold focus:ring-2 focus:ring-gold/30 focus:outline-none disabled:opacity-40';
+  'block border border-gold/40 bg-white/70 px-4 py-3 text-base text-default transition placeholder:text-muted/70 focus:border-gold focus:ring-2 focus:ring-gold/30 focus:outline-none disabled:opacity-40 user-invalid:border-red-700';
 const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
+
+const isText = (field: Field) => ['text', 'email', 'tel', 'number', 'textarea'].includes(field.type);
 ---
 
 <Layout metadata={metadata} lang="tr">
@@ -62,7 +76,12 @@ const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
     <BandBg tone="ivory" />
 
     <div class="relative mx-auto max-w-3xl px-4 py-16 sm:px-6 md:py-20">
-      <form id="client-form" data-endpoint={CLIENT_FORM_ENDPOINT} class="text-default">
+      <form
+        id="client-form"
+        data-endpoint={CLIENT_FORM_ENDPOINT}
+        data-messages={JSON.stringify(messages)}
+        class="text-default"
+      >
         {
           f.sections.map((section) => (
             <fieldset class="mb-14 border-0 p-0">
@@ -82,13 +101,22 @@ const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
                     // Turkish only: these become the sheet's column headers and the email's labels.
                     'data-label': field.tr,
                     'data-section': section.tr,
+                    ...(field.showIf
+                      ? {
+                          'data-show-if': field.showIf.key,
+                          'data-show-if-any': field.showIf.anyOf.join(','),
+                          hidden: true,
+                        }
+                      : {}),
+                    ...(field.type === 'ages' ? { 'data-count-from': field.countFrom, hidden: true } : {}),
                     class: field.wide ? 'md:col-span-2' : '',
                   };
+                  const required = isText(field) && (field as { required?: boolean }).required;
                   const caption = (
                     <>
                       <span class="block font-medium">
                         {field.tr}
-                        {'required' in field && field.required && (
+                        {required && (
                           <span class="text-gold-600" title={both(f.required)}>
                             {' '}
                             *
@@ -110,7 +138,7 @@ const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
                             <div class="flex flex-col gap-2">
                               <label class="inline-flex cursor-pointer items-center gap-2.5">
                                 <input
-                                  type={field.type}
+                                  type={field.type as 'radio' | 'checkbox'}
                                   name={field.key}
                                   value={option.value}
                                   data-label={both(option)}
@@ -132,7 +160,8 @@ const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
                                   name={`${field.key}__${option.value}`}
                                   data-detail-for={option.value}
                                   aria-label={`${both(option)}: ${both(option.detail)}`}
-                                  placeholder={`${option.detail.tr} · ${option.detail.en}`}
+                                  placeholder={trEn(option.detail)}
+                                  maxlength="300"
                                   disabled
                                   class:list={[control, 'w-full py-2 text-sm sm:w-64']}
                                 />
@@ -140,6 +169,85 @@ const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
                             </div>
                           ))}
                         </div>
+                      </fieldset>
+                    );
+                  }
+
+                  if (field.type === 'select') {
+                    const id = `f-${field.key}`;
+                    return (
+                      <div {...shared}>
+                        <label for={id} class="mb-2 block">
+                          {caption}
+                        </label>
+                        <select id={id} name={field.key} class:list={[control, 'w-full']}>
+                          <option value="">{trEn(f.ages.choose)}</option>
+                          {field.options.map((option) => (
+                            <option value={option.value} data-label={both(option)}>
+                              {trEn(option)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  }
+
+                  if (field.type === 'ages') {
+                    return (
+                      <fieldset {...shared} class:list={[shared.class, 'border-0 p-0']}>
+                        <legend class="mb-3">{caption}</legend>
+                        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                          {Array.from({ length: field.max }, (_, i) => (
+                            <div data-age-slot={i} hidden>
+                              <label class="text-muted mb-1 block text-sm">
+                                {i + 1}. {f.ages.child.tr} ·{' '}
+                                <span lang="en">
+                                  {f.ages.child.en} {i + 1}
+                                </span>
+                                <select name={`${field.key}_${i}`} disabled class:list={[control, 'mt-1 w-full']}>
+                                  <option value="">{trEn(f.ages.choose)}</option>
+                                  {ageOptions.map((age) => (
+                                    <option value={age.value} data-label={age.label}>
+                                      {age.text}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </fieldset>
+                    );
+                  }
+
+                  if (field.type === 'slots') {
+                    return (
+                      <fieldset {...shared} class:list={[shared.class, 'border-0 p-0']}>
+                        <legend class="mb-3">{caption}</legend>
+                        <div class="grid gap-4 sm:grid-cols-3">
+                          {Array.from({ length: field.count }, (_, i) => (
+                            <label class="text-muted block text-sm">
+                              {i + 1}. {f.slot.tr} ·{' '}
+                              <span lang="en">
+                                {f.slot.en} {i + 1}
+                              </span>
+                              <input
+                                type="datetime-local"
+                                name={`${field.key}_${i}`}
+                                data-slot
+                                class:list={[control, 'mt-1 w-full']}
+                              />
+                            </label>
+                          ))}
+                        </div>
+                        <input
+                          type="text"
+                          name={`${field.key}_note`}
+                          maxlength="300"
+                          aria-label={`${both(field)}: ${both(field.note)}`}
+                          placeholder={trEn(field.note)}
+                          class:list={[control, 'mt-4 w-full']}
+                        />
                       </fieldset>
                     );
                   }
@@ -152,8 +260,9 @@ const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
                           <input
                             type="number"
                             name={`${field.key}Min`}
-                            min="18"
-                            max="70"
+                            min={field.min}
+                            max={field.max}
+                            value={field.defaults[0]}
                             inputmode="numeric"
                             aria-label={`${both(field)}: min`}
                             class:list={[control, 'w-24']}
@@ -162,8 +271,9 @@ const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
                           <input
                             type="number"
                             name={`${field.key}Max`}
-                            min="18"
-                            max="70"
+                            min={field.min}
+                            max={field.max}
+                            value={field.defaults[1]}
                             inputmode="numeric"
                             aria-label={`${both(field)}: max`}
                             class:list={[control, 'w-24']}
@@ -178,23 +288,39 @@ const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
 
                   const id = `f-${field.key}`;
                   // Only text-like fields reach here; Astro's checker loses that narrowing inside the JSX.
-                  const { required, autocomplete } = field as { required?: boolean; autocomplete?: string };
+                  const text = field as {
+                    type: string;
+                    autocomplete?: string;
+                    placeholder?: Bilingual;
+                    min?: number;
+                    max?: number;
+                  };
                   return (
                     <div {...shared}>
                       <label for={id} class="mb-2 block">
                         {caption}
                       </label>
-                      {field.type === 'textarea' ? (
+                      {text.type === 'textarea' ? (
                         <textarea id={id} name={field.key} rows="4" maxlength="3000" class:list={[control, 'w-full']} />
                       ) : (
                         <input
                           id={id}
-                          type={field.type}
+                          type={text.type as 'text' | 'email' | 'tel' | 'number'}
                           name={field.key}
                           required={required}
-                          autocomplete={autocomplete ?? 'off'}
+                          autocomplete={text.autocomplete ?? 'off'}
+                          placeholder={text.placeholder?.tr}
                           maxlength="300"
-                          {...(field.type === 'number' ? { min: '0', inputmode: 'numeric' } : {})}
+                          {...(text.type === 'number'
+                            ? {
+                                min: String(text.min ?? 0),
+                                max: text.max ? String(text.max) : undefined,
+                                step: '1',
+                                inputmode: 'numeric',
+                              }
+                            : {})}
+                          {...(text.type === 'tel' ? { inputmode: 'tel' } : {})}
+                          {...(text.type === 'email' ? { pattern: '[^@\\s]+@[^@\\s]+\\.[^@\\s]{2,}' } : {})}
                           class:list={[control, 'w-full']}
                         />
                       )}
@@ -212,25 +338,6 @@ const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
         </div>
 
         <div class="border-t border-gold/40 pt-10">
-          <label class="flex cursor-pointer items-start gap-3">
-            <input type="checkbox" name="consent" required class:list={[choice, 'mt-1']} />
-            <span>
-              <span class="block">
-                {f.consent.tr}
-                <a href={f.consent.href} target="_blank" rel="noopener" class="text-gold-600 underline">
-                  {f.consent.linkText.tr}</a
-                >
-                <span class="text-gold-600"> *</span>
-              </span>
-              <span lang="en" class="text-muted mt-2 block text-sm">{f.consent.en}</span>
-            </span>
-          </label>
-
-          <p class="text-muted mt-8 text-sm leading-relaxed">
-            {f.disclaimer.tr}
-            <span lang="en" class="mt-2 block">{f.disclaimer.en}</span>
-          </p>
-
           <div class="mt-10 flex flex-col items-center gap-4">
             <!-- Cloudflare Turnstile bot check. Usually invisible; it only shows a
                  checkbox when Cloudflare wants the visitor to confirm. -->
@@ -238,22 +345,41 @@ const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
             <button
               type="submit"
               class="btn-primary w-full sm:w-80"
-              data-idle={`${f.submit.tr} · ${f.submit.en}`}
-              data-busy={`${f.sending.tr} · ${f.sending.en}`}
+              data-idle={trEn(f.submit)}
+              data-busy={trEn(f.sending)}
             >
-              {f.submit.tr} · {f.submit.en}
+              {trEn(f.submit)}
             </button>
             <p data-status-verifying hidden role="status" class="text-muted text-center text-sm">
               {f.verifying.tr}
               <span lang="en" class="mt-1 block">{f.verifying.en}</span>
             </p>
             <p data-status-error hidden role="alert" class="text-center text-sm text-red-700">
-              {f.error.tr}
+              {f.error.tr}{' '}
               <a class="underline" href={`mailto:${f.errorEmail}`}>{f.errorEmail}</a>
               <span lang="en" class="mt-1 block">
-                {f.error.en}
+                {f.error.en}{' '}
                 <a class="underline" href={`mailto:${f.errorEmail}`}>{f.errorEmail}</a>
               </span>
+            </p>
+          </div>
+
+          <div class="text-muted mt-10 space-y-3 text-sm leading-relaxed">
+            <p>
+              {f.privacy.tr}{' '}
+              <a href={f.privacy.href} target="_blank" rel="noopener" class="text-gold-600 underline">
+                {f.privacy.linkText.tr}</a
+              >{f.privacy.after.tr}
+              <span lang="en" class="block">
+                {f.privacy.en}{' '}
+                <a href={f.privacy.href} target="_blank" rel="noopener" class="text-gold-600 underline">
+                  {f.privacy.linkText.en}</a
+                >{f.privacy.after.en}
+              </span>
+            </p>
+            <p>
+              {f.disclaimer.tr}
+              <span lang="en" class="block">{f.disclaimer.en}</span>
             </p>
           </div>
         </div>
@@ -298,18 +424,46 @@ const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
     value: string;
   }
 
+  type Control = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+  const selectedLabel = (select: HTMLSelectElement | null) =>
+    select?.value ? (select.selectedOptions[0]?.dataset.label ?? select.value) : '';
+
+  // "2026-10-22T14:00" → "22.10.2026 14:00"
+  const formatSlot = (value: string) => {
+    const [date, time] = value.split('T');
+    const [y, m, d] = date.split('-');
+    return `${d}.${m}.${y} ${time}`;
+  };
+
   const collect = (form: HTMLFormElement): Answer[] =>
     Array.from(form.querySelectorAll<HTMLElement>('[data-field]')).map((el) => {
       const { key = '', type, label = '', section = '' } = el.dataset;
       let value: string;
 
-      if (type === 'radio' || type === 'checkbox') {
+      if (el.hidden) {
+        value = '';
+      } else if (type === 'radio' || type === 'checkbox') {
         value = Array.from(el.querySelectorAll<HTMLInputElement>(`input[name="${key}"]:checked`))
           .map((input) => {
             const detail = el.querySelector<HTMLInputElement>(`input[name="${key}__${input.value}"]`)?.value.trim();
             return detail ? `${input.dataset.label}: ${detail}` : (input.dataset.label ?? input.value);
           })
           .join(', ');
+      } else if (type === 'select') {
+        value = selectedLabel(el.querySelector('select'));
+      } else if (type === 'ages') {
+        value = Array.from(el.querySelectorAll<HTMLSelectElement>('select:enabled'))
+          .map(selectedLabel)
+          .filter(Boolean)
+          .join(', ');
+      } else if (type === 'slots') {
+        const slots = Array.from(el.querySelectorAll<HTMLInputElement>('input[data-slot]'))
+          .map((input) => input.value)
+          .filter(Boolean)
+          .map(formatSlot);
+        const note = el.querySelector<HTMLInputElement>(`input[name="${key}_note"]`)?.value.trim();
+        value = [slots.join('; '), note ? `Not: ${note}` : ''].filter(Boolean).join(' · ');
       } else if (type === 'range') {
         const min = el.querySelector<HTMLInputElement>(`input[name="${key}Min"]`)?.value.trim();
         const max = el.querySelector<HTMLInputElement>(`input[name="${key}Max"]`)?.value.trim();
@@ -328,6 +482,7 @@ const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
 
     const startedAt = Date.now();
     const endpoint = form.dataset.endpoint ?? '';
+    const messages: Record<string, string> = JSON.parse(form.dataset.messages ?? '{}');
     const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
     const error = form.querySelector<HTMLElement>('[data-status-error]')!;
     const verifying = form.querySelector<HTMLElement>('[data-status-verifying]')!;
@@ -350,8 +505,42 @@ const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
       else window.addEventListener('turnstile-ready', render, { once: true });
     }
 
-    // A detail box ("Other: ____") is only usable while its option is chosen.
-    const syncDetails = () => {
+    // Interview slots start tomorrow.
+    const tomorrow = new Date(Date.now() + 86400000);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const minSlot = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}T00:00`;
+    form.querySelectorAll<HTMLInputElement>('input[data-slot]').forEach((input) => (input.min = minSlot));
+
+    const show = (el: HTMLElement, visible: boolean) => {
+      el.hidden = !visible;
+      // Hidden controls are left out of validation and of the answers.
+      el.querySelectorAll<Control>('input, select, textarea').forEach((c) => {
+        if (!c.dataset.detailFor) c.disabled = !visible;
+      });
+    };
+
+    const sync = () => {
+      // Fields that depend on another answer, e.g. care ages on the role.
+      form.querySelectorAll<HTMLElement>('[data-show-if]').forEach((el) => {
+        const chosen = Array.from(
+          form.querySelectorAll<HTMLInputElement>(`input[name="${el.dataset.showIf}"]:checked`)
+        ).map((i) => i.value);
+        show(
+          el,
+          (el.dataset.showIfAny ?? '').split(',').some((v) => chosen.includes(v))
+        );
+      });
+
+      // One age drop-down per child.
+      form.querySelectorAll<HTMLElement>('[data-count-from]').forEach((el) => {
+        const raw = form.querySelector<HTMLSelectElement>(`select[name="${el.dataset.countFrom}"]`)?.value ?? '';
+        const slots = el.querySelectorAll<HTMLElement>('[data-age-slot]');
+        const count = raw === '5+' ? slots.length : Number(raw) || 0;
+        el.hidden = count === 0;
+        slots.forEach((slot, i) => show(slot, i < count));
+      });
+
+      // A detail box ("Other: ____") is only usable while its option is chosen.
       form.querySelectorAll<HTMLInputElement>('input[data-detail-for]').forEach((detail) => {
         const group = detail.closest<HTMLElement>('[data-field]')!;
         const option = group.querySelector<HTMLInputElement>(
@@ -360,7 +549,51 @@ const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
         detail.disabled = !option?.checked;
       });
     };
-    form.addEventListener('change', syncDetails);
+    form.addEventListener('change', sync);
+    sync();
+
+    // Checks the browser cannot express with attributes alone.
+    const check = (c: Control) => {
+      c.setCustomValidity('');
+      if (!(c instanceof HTMLInputElement) || !c.value) return;
+      if (c.type === 'tel') {
+        const digits = c.value.replace(/\D/g, '');
+        const ok = /^\+?[\d\s().-]+$/.test(c.value.trim()) && digits.length >= 10 && digits.length <= 15;
+        if (!ok) c.setCustomValidity(messages.tel);
+      }
+      if (c.name.endsWith('Max') || c.name.endsWith('Min')) {
+        const base = c.name.replace(/(Min|Max)$/, '');
+        const min = form.querySelector<HTMLInputElement>(`input[name="${base}Min"]`);
+        const max = form.querySelector<HTMLInputElement>(`input[name="${base}Max"]`);
+        if (min && max) {
+          max.setCustomValidity(
+            min.value && max.value && Number(max.value) < Number(min.value) ? messages.rangeOrder : ''
+          );
+        }
+      }
+    };
+    form.addEventListener('input', (event) => check(event.target as Control));
+    form.addEventListener('change', (event) => check(event.target as Control));
+
+    // Explains in both languages why a field was not accepted.
+    form.addEventListener(
+      'invalid',
+      (event) => {
+        const c = event.target as Control;
+        if (c.validity.customError) return;
+        let message = messages.required;
+        if (!c.validity.valueMissing) {
+          if (c.type === 'email') message = messages.email;
+          else if (c.type === 'datetime-local') message = messages.future;
+          else if (c.type === 'number') {
+            const input = c as HTMLInputElement;
+            message = messages.number.replaceAll('{min}', input.min).replaceAll('{max}', input.max || '…');
+          }
+        }
+        c.setCustomValidity(message);
+      },
+      true
+    );
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -375,16 +608,7 @@ const choice = 'size-4 shrink-0 cursor-pointer accent-[var(--color-gold-600)]';
         return;
       }
 
-      const consent = form.querySelector<HTMLInputElement>('input[name="consent"]')!;
-      const fields = [
-        ...collect(form),
-        {
-          key: 'consent',
-          label: 'KVKK açık rıza',
-          section: '',
-          value: consent.checked ? 'Yes · Evet' : '',
-        },
-      ];
+      const fields = collect(form);
 
       button.disabled = true;
       button.textContent = button.dataset.busy ?? '';

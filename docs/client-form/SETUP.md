@@ -68,9 +68,9 @@ Check three things:
 - The sheet has a **Yanıtlar** tab with a header row and one row reading
   "TEST: delete this row". Delete that row (keep the header). The log at the
   bottom of the editor says which spreadsheet, tab and row it wrote to.
-- info@efka-consulting.com received an email titled
-  "Müşteri ihtiyaç formu: TEST: delete this row", with the answers as a PDF on
-  EFKA letterhead attached.
+- info@efka-consulting.com received two emails: "Müşteri ihtiyaç formu: TEST:
+  delete this row", with the answers as a PDF on EFKA letterhead attached, and
+  "Formunuz bize ulaştı", the thank-you a client receives.
 - The log ends with "Turnstile: secret key accepted by Cloudflare." If it says
   the secret is not set or not recognised, redo the Script Properties part of
   step 3.
@@ -149,6 +149,10 @@ then need.)
 - **The PDF:** each email carries the submission as a PDF on EFKA letterhead.
   The logo is `letterhead-logo.png`, embedded at the end of the script as
   `LOGO_PNG`.
+- **Confirmation to the client:** when the client gives an email address,
+  they get a short thank-you in Turkish and English. It does not repeat their
+  answers, because anyone can type any address into the form. Set
+  `SEND_CONFIRMATION` to `false` at the top of the script to turn it off.
 - **Replying:** if the client gave an email address, replying to the
   notification email goes straight to them.
 - **Limits:** Google Workspace accounts can send 1,500 emails a day from

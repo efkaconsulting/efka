@@ -1,8 +1,10 @@
 /*
  * The household client requirements form, from EFKA_Client_Requirements_Form_.docx.
  *
- * The document is bilingual, English first with Turkish underneath, and the
- * page keeps that layout. Every label here is the document's own wording.
+ * The document is bilingual, English first with Turkish underneath; the page
+ * shows Turkish first with English underneath. Labels are the document's own
+ * wording, except where the web form asks differently (drop-downs, date
+ * pickers) and the few fields noted below.
  *
  * The page renders from this list, and each submission carries the labels
  * with the answers, so the Google Sheet's column headers and the notification
@@ -12,21 +14,20 @@
  */
 
 /**
- * The Google Apps Script web app that receives submissions: paste the URL
- * ending in `/exec` in place of the empty string (see docs/client-form/SETUP.md).
- * It is public in the page source either way. `PUBLIC_CLIENT_FORM_ENDPOINT` in
- * the environment overrides it, which is how the form is tested locally.
+ * The Google Apps Script web app that receives submissions (see
+ * docs/client-form/SETUP.md). It is public in the page source either way.
+ * `PUBLIC_CLIENT_FORM_ENDPOINT` in the environment overrides it, which is how
+ * the form is tested locally.
  */
 export const CLIENT_FORM_ENDPOINT: string =
   import.meta.env.PUBLIC_CLIENT_FORM_ENDPOINT ||
   'https://script.google.com/macros/s/AKfycbz2c-vTMAQKNZp_6F3zuK95qUTJ_0akLyNhD7j62ml9DbxNl23aAxAeDDd7vBQTWeK4/exec';
 
 /**
- * Cloudflare Turnstile site key for the bot check (public, like the endpoint):
- * paste it in place of the empty string. The widget only works on the
- * hostnames set for it in Cloudflare. `PUBLIC_TURNSTILE_SITE_KEY` overrides
- * it, e.g. with Cloudflare's always-passing test key `1x00000000000000000000AA`
- * for local testing.
+ * Cloudflare Turnstile site key for the bot check (public, like the endpoint).
+ * The widget only works on the hostnames set for it in Cloudflare.
+ * `PUBLIC_TURNSTILE_SITE_KEY` overrides it, e.g. with Cloudflare's
+ * always-passing test key `1x00000000000000000000AA` for local testing.
  */
 export const TURNSTILE_SITE_KEY: string = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAAFfGZ-cOZ6ezmeKb';
 
@@ -41,17 +42,29 @@ export interface Option extends Bilingual {
   detail?: Bilingual;
 }
 
+interface Common extends Bilingual {
+  key: string;
+  /** Spans both columns on wide screens. */
+  wide?: boolean;
+  /** Shown only while one of these options is chosen in another field. */
+  showIf?: { key: string; anyOf: string[] };
+}
+
 export type Field =
-  | (Bilingual & {
-      key: string;
+  | (Common & {
       type: 'text' | 'email' | 'tel' | 'number' | 'textarea';
       required?: boolean;
       autocomplete?: string;
-      /** Spans both columns on wide screens. */
-      wide?: boolean;
+      placeholder?: Bilingual;
+      min?: number;
+      max?: number;
     })
-  | (Bilingual & { key: string; type: 'radio' | 'checkbox'; options: Option[]; wide?: boolean })
-  | (Bilingual & { key: string; type: 'range'; unit: Bilingual; wide?: boolean });
+  | (Common & { type: 'radio' | 'checkbox' | 'select'; options: Option[] })
+  | (Common & { type: 'range'; unit: Bilingual; min: number; max: number; defaults: [number, number] })
+  /** One age drop-down per child, as many as the answer to `countFrom`. */
+  | (Common & { type: 'ages'; countFrom: string; max: number })
+  /** Up to `count` date-and-time pickers, plus a free-text note. */
+  | (Common & { type: 'slots'; count: number; note: Bilingual });
 
 export interface Section extends Bilingual {
   key: string;
@@ -65,6 +78,8 @@ const sections = (list: Section[]) => list;
 const YES = { value: 'yes', en: 'Yes', tr: 'Evet' };
 const NO = { value: 'no', en: 'No', tr: 'Hayır' };
 const OTHER = { value: 'other', en: 'Other', tr: 'Diğer', detail: { en: 'Please specify', tr: 'Belirtiniz' } };
+
+const COUNT = ['0', '1', '2', '3', '4', '5+'].map((n) => ({ value: n, en: n, tr: n }));
 
 export const clientForm = {
   meta: {
@@ -109,10 +124,18 @@ export const clientForm = {
           type: 'tel',
           required: true,
           autocomplete: 'tel',
+          placeholder: { en: '0532 123 45 67', tr: '0532 123 45 67' },
           en: 'Phone / WhatsApp',
           tr: 'Telefon / WhatsApp',
         },
-        { key: 'email', type: 'email', autocomplete: 'email', en: 'Email', tr: 'E-posta' },
+        {
+          key: 'email',
+          type: 'email',
+          autocomplete: 'email',
+          placeholder: { en: 'name@example.com', tr: 'ad@ornek.com' },
+          en: 'Email',
+          tr: 'E-posta',
+        },
         {
           key: 'contactMethod',
           type: 'checkbox',
@@ -125,9 +148,24 @@ export const clientForm = {
             { value: 'email', en: 'Email', tr: 'E-posta' },
           ],
         },
-        { key: 'adults', type: 'number', en: 'Number of adults in household', tr: 'Evde yaşayan yetişkin sayısı' },
-        { key: 'children', type: 'number', en: 'Number of children', tr: 'Çocuk sayısı' },
-        { key: 'childrenAges', type: 'text', wide: true, en: 'Children’s ages', tr: 'Çocukların yaşları' },
+        {
+          key: 'adults',
+          type: 'select',
+          en: 'Number of adults in household',
+          tr: 'Evde yaşayan yetişkin sayısı',
+          options: COUNT,
+        },
+        { key: 'children', type: 'select', en: 'Number of children', tr: 'Çocuk sayısı', options: COUNT },
+        // Not a free-text box as in the document: one drop-down per child.
+        {
+          key: 'childrenAges',
+          type: 'ages',
+          countFrom: 'children',
+          max: 6,
+          wide: true,
+          en: 'Children’s ages',
+          tr: 'Çocukların yaşları',
+        },
       ],
     },
     {
@@ -189,10 +227,12 @@ export const clientForm = {
             { value: 'household', en: 'Household help', tr: 'Ev yardımcısı' },
           ],
         },
+        // Children's ages are asked above, so this is only for elderly or patient care.
         {
           key: 'careAges',
           type: 'text',
           wide: true,
+          showIf: { key: 'primaryRole', anyOf: ['elderly', 'patient'] },
           en: 'Age(s) of person(s) receiving care',
           tr: 'Bakım verilecek kişi(ler)in yaşları',
         },
@@ -255,10 +295,14 @@ export const clientForm = {
       en: '5. Candidate preferences',
       tr: '5. Aday tercihleri',
       fields: [
+        // Philippine rules set 23 as the minimum age for household workers abroad.
         {
           key: 'workerAge',
           type: 'range',
           wide: true,
+          min: 23,
+          max: 60,
+          defaults: [25, 45],
           en: 'Preferred worker age range',
           tr: 'Tercih edilen çalışan yaş aralığı',
           unit: { en: 'years', tr: 'yaş' },
@@ -279,6 +323,8 @@ export const clientForm = {
         {
           key: 'minExperience',
           type: 'number',
+          min: 0,
+          max: 40,
           en: 'Minimum relevant experience (years)',
           tr: 'Asgari ilgili deneyim (yıl)',
         },
@@ -305,10 +351,12 @@ export const clientForm = {
       fields: [
         {
           key: 'interviewAvailability',
-          type: 'text',
+          type: 'slots',
+          count: 3,
           wide: true,
-          en: 'Availability for interviews',
-          tr: 'Görüşmeler için uygun olunan zamanlar',
+          en: 'Availability for interviews (Türkiye time)',
+          tr: 'Görüşmeler için uygun olunan zamanlar (Türkiye saati)',
+          note: { en: 'Other times, e.g. weekday evenings', tr: 'Diğer uygun zamanlar, ör. hafta içi akşamları' },
         },
         {
           key: 'additionalInfo',
@@ -317,24 +365,26 @@ export const clientForm = {
           en: 'Additional information for candidate matching',
           tr: 'Aday eşleştirmesi için ek bilgiler',
         },
-        // The document's "Completed by / date": the date is recorded with the submission.
-        { key: 'completedBy', type: 'text', wide: true, en: 'Completed by', tr: 'Dolduran kişi' },
+        // The document's "Completed by / date" is left out: the name is asked
+        // at the top, and the date is recorded with the submission.
       ],
     },
   ]),
 
-  // Not in the document. The form collects personal data, possibly including
-  // health information about the person receiving care, and shares it with
-  // recruitment partners abroad, which under KVKK needs the notice and
-  // explicit consent. The wording should be checked by EFKA's lawyer.
-  consent: {
-    en: `I have read the KVKK privacy notice, and I consent to the information I give here, including any
-      health information about the person receiving care, being processed and shared with
-      recruitment partners for candidate matching.`,
-    tr: `KVKK Aydınlatma Metni’ni okudum. Bu formda verdiğim bilgilerin, bakım alacak kişiye ait sağlık
-      bilgileri dâhil, aday eşleştirmesi amacıyla işlenmesine ve işe alım ortaklarıyla paylaşılmasına
-      açık rıza veriyorum.`,
-    linkText: { en: 'Read the notice', tr: 'Metni okuyun' },
+  ages: {
+    choose: { en: 'Choose', tr: 'Seçiniz' },
+    child: { en: 'Child', tr: 'çocuk' },
+    underOne: { en: 'Under 1', tr: '1 yaşından küçük' },
+  },
+
+  slot: { en: 'Choice', tr: 'tercih' },
+
+  // A short notice with a link, in place of the consent checkbox.
+  privacy: {
+    en: 'Your personal data is processed as described in our',
+    tr: 'Kişisel verileriniz',
+    linkText: { en: 'KVKK privacy notice', tr: 'KVKK Aydınlatma Metni' },
+    after: { en: '.', tr: ' kapsamında işlenir.' },
     href: '/kvkk',
   },
 
@@ -347,10 +397,31 @@ export const clientForm = {
       kesinleştirilecektir.`,
   },
 
+  // Shown by the browser when a field does not pass its check.
+  messages: {
+    required: { en: 'Please fill in this field.', tr: 'Lütfen bu alanı doldurun.' },
+    tel: {
+      en: 'Please enter a valid phone number, e.g. 0532 123 45 67 or +90 532 123 45 67.',
+      tr: 'Lütfen geçerli bir telefon numarası girin, ör. 0532 123 45 67 veya +90 532 123 45 67.',
+    },
+    email: {
+      en: 'Please enter a valid email address, e.g. name@example.com.',
+      tr: 'Lütfen geçerli bir e-posta adresi girin, ör. ad@ornek.com.',
+    },
+    number: { en: 'Please enter a number from {min} to {max}.', tr: 'Lütfen {min} ile {max} arasında bir sayı girin.' },
+    rangeOrder: {
+      en: 'The upper age cannot be lower than the lower age.',
+      tr: 'Üst yaş sınırı alt sınırdan küçük olamaz.',
+    },
+    future: {
+      en: 'Please choose a date and time from tomorrow on.',
+      tr: 'Lütfen yarından itibaren bir tarih ve saat seçin.',
+    },
+  },
+
   submit: { en: 'Submit', tr: 'Gönder' },
   sending: { en: 'Sending…', tr: 'Gönderiliyor…' },
   required: { en: 'Required', tr: 'Zorunlu' },
-  rangeTo: { en: 'to', tr: '–' },
 
   success: {
     en: 'Thank you. We have received your answers and will be in touch shortly.',

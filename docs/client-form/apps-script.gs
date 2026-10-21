@@ -18,6 +18,12 @@ const NOTIFY_TO = 'info@efka-consulting.com';
 const SHEET_NAME = 'Yanıtlar';
 const SENDER_NAME = 'EFKA Web Formu';
 
+// A short thank-you to the client, when they gave an email address. It does
+// not repeat their answers: anyone can type any address into the form, so an
+// email that echoed what they wrote would let them send their own text to a
+// stranger from EFKA's account.
+const SEND_CONFIRMATION = true;
+
 // Limits on what one submission may contain, so a forged request cannot
 // flood the sheet.
 const MAX_FIELDS = 80;
@@ -90,6 +96,15 @@ function doPost(e) {
     console.error('Email failed: ' + err);
   }
 
+  const clientEmail = (fields.find((f) => f.key === 'email') || {}).value || '';
+  if (SEND_CONFIRMATION && isEmail(clientEmail)) {
+    try {
+      sendConfirmation(clientEmail);
+    } catch (err) {
+      console.error('Confirmation email failed: ' + err);
+    }
+  }
+
   return reply({ ok: true });
 }
 
@@ -127,6 +142,9 @@ function testSetup() {
       '), and emailed ' +
       NOTIFY_TO
   );
+
+  // What a client receives, sent to you so you can see it.
+  sendConfirmation(NOTIFY_TO);
 
   console.log(checkTurnstileSecret());
 }
@@ -305,7 +323,7 @@ function sendEmail(submittedAt, fields) {
 
   const options = { name: SENDER_NAME, htmlBody: html };
   // Replying to the email then goes straight to the client.
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail)) options.replyTo = clientEmail;
+  if (isEmail(clientEmail)) options.replyTo = clientEmail;
 
   // A failed PDF should not cost the notification, so the email goes out
   // without the attachment in that case.
@@ -364,6 +382,62 @@ function buildPdf(name, submittedAt, when, table) {
   return Utilities.newBlob(doc, 'text/html', 'form.html')
     .getAs('application/pdf')
     .setName('Musteri-Formu-' + slug + '-' + stamp + '.pdf');
+}
+
+/** The thank-you the client receives. Fixed wording; nothing from the form. */
+function sendConfirmation(to) {
+  const subject = 'Formunuz bize ulaştı · We have received your form';
+
+  const tr =
+    'Merhaba,\n\n' +
+    'Ev personeli ihtiyaç formunuz bize ulaştı, teşekkür ederiz. Yanıtlarınızı inceleyip en kısa sürede ' +
+    'sizinle iletişime geçeceğiz.\n\n' +
+    'Sorularınız için bu e-postayı yanıtlayabilir ya da ' +
+    NOTIFY_TO +
+    ' adresine yazabilirsiniz.';
+  const en =
+    'Hello,\n\n' +
+    'Thank you, we have received your household worker requirements form. We will review your answers ' +
+    'and get back to you shortly.\n\n' +
+    'If you have any questions, reply to this email or write to ' +
+    NOTIFY_TO +
+    '.';
+  const ignore =
+    'Bu formu siz doldurmadıysanız bu e-postayı dikkate almayın. · ' +
+    'If you did not fill in this form, please ignore this email.';
+
+  const paragraphs = (text) =>
+    text
+      .split('\n\n')
+      .map((p) => '<p style="margin:0 0 12px">' + escapeHtml(p).replace(/\n/g, '<br>') + '</p>')
+      .join('');
+
+  const html =
+    '<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.5;color:#0b1728;max-width:560px">' +
+    '<img src="cid:logo" width="206" height="48" alt="efka consulting" style="display:block;margin:0 0 12px">' +
+    '<div style="border-top:1px solid #b49a6a;margin:0 0 20px"></div>' +
+    paragraphs(tr) +
+    '<p style="margin:0 0 24px">EFKA Consulting</p>' +
+    '<div style="border-top:1px solid #e7e0d3;margin:0 0 20px"></div>' +
+    paragraphs(en) +
+    '<p style="margin:0 0 24px">EFKA Consulting</p>' +
+    '<p style="margin:0;font-size:11px;color:#8a8a8a">' +
+    escapeHtml(ignore) +
+    '</p>' +
+    '</div>';
+
+  const text = tr + '\n\nEFKA Consulting\n\n---\n\n' + en + '\n\nEFKA Consulting\n\n' + ignore;
+
+  MailApp.sendEmail(to, subject, text, {
+    name: 'EFKA Consulting',
+    htmlBody: html,
+    replyTo: NOTIFY_TO,
+    inlineImages: { logo: Utilities.newBlob(Utilities.base64Decode(LOGO_PNG), 'image/png', 'efka.png') },
+  });
+}
+
+function isEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(value));
 }
 
 function escapeHtml(value) {
