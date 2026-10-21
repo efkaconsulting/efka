@@ -39,9 +39,9 @@ export const tr = {
   },
 
   footer: {
-    description: `EFKA Consulting, evine bakıcı ya da işletmesine personel arayanlara
-      Filipinler’den uygun adayları buluyor; çalışma izninden işe başlangıca kadar bütün süreci
-      takip ediyor.`,
+    description: `EFKA Consulting, Filipinler’den ev hizmetleri, bakım ve kurumsal iş gücü
+      ihtiyaçlarına uygun çalışanların bulunması ve Türkiye’de yasal istihdam süreçlerinin
+      koordinasyonu konusunda danışmanlık sağlar.`,
     columns: [
       {
         title: 'Hizmetlerimiz',
@@ -128,9 +128,9 @@ export const tr = {
             kadar bütün işleri tek elden yürütüyoruz.`,
         },
         {
-          title: 'Hukuk geçmişinden gelen titizlik',
-          description: `Kurucumuz altı yıl hukuk müşaviri olarak çalıştı. Evrakta, sözleşmede ve
-            takipte titiz olmamız o yıllardan geliyor.`,
+          title: 'Profesyonel çalışma disiplini',
+          description: `Kurucumuzun altı yıllık hukuk müşavirliği deneyimi; belge, sözleşme ve
+            süreç takibine dayanan çalışma anlayışımıza yön verir.`,
         },
         {
           title: 'Uzun soluklu bir ilişki',
@@ -305,20 +305,20 @@ export const tr = {
   about: {
     meta: {
       title: 'Hakkımızda',
-      description: `EFKA Consulting’i, güvenilir bir çalışan arayan ailelerin ve işletmelerin
-        ihtiyaç duyduğu desteği tek elden verebilmek için kurduk.`,
+      description: `EFKA Consulting, ailelerin ve işletmelerin güvenilir çalışanlara ulaşırken
+        ihtiyaç duyduğu profesyonel desteği tek merkezden sunmak amacıyla kuruldu.`,
     },
     hero: {
       tagline: 'Hakkımızda',
       title: 'Hakkımızda',
       paragraphs: [
-        `EFKA Consulting’i, güvenilir bir çalışan arayan ailelerin ve işletmelerin ihtiyaç
-          duyduğu desteği tek elden verebilmek için kurduk.`,
-        `Kurucumuz altı yıl hukuk müşaviri olarak çalıştı. Evrakta, sözleşmede ve süreç
-          takibinde gösterdiğimiz titizliğin temeli o yıllara dayanıyor.`,
-        `Filipinler’e odaklanarak çalışıyoruz. Ev ve bakım personelinin yanı sıra turizm,
-          konaklama, üretim ve sanayi işletmeleri için de uygun adayları buluyor, yasal olarak
-          işe başlamalarına kadar süreci yürütüyoruz.`,
+        `EFKA Consulting, ailelerin ve işletmelerin güvenilir çalışanlara ulaşırken ihtiyaç
+          duyduğu profesyonel desteği tek merkezden sunmak amacıyla kuruldu.`,
+        `Kurucumuzun altı yıllık hukuk müşavirliği deneyimi; belge, sözleşme ve süreç takibine
+          dayanan çalışma disiplinimizin temelini oluşturur.`,
+        `Filipinler odaklı çalışan EFKA; ev hizmetleri ve bakım personelinin yanı sıra turizm,
+          konaklama, üretim ve sanayi işletmelerinin iş gücü ihtiyaçları için uygun adayların
+          belirlenmesine ve yasal istihdam sürecinin koordinasyonuna destek sağlar.`,
       ],
     },
     mission: {
