@@ -14,6 +14,10 @@
  * "Status" column, say) are left alone.
  */
 
+// Shown when the web app URL is opened, so you can tell which version the live
+// deployment runs. Change it whenever the script changes.
+const SCRIPT_VERSION = '2026-10-21 (client thank-you email)';
+
 const NOTIFY_TO = 'info@efka-consulting.com';
 const SHEET_NAME = 'Yanıtlar';
 const SENDER_NAME = 'EFKA Web Formu';
@@ -110,7 +114,13 @@ function doPost(e) {
 
 /** Opening the web app URL in a browser shows this, which confirms the deployment. */
 function doGet() {
-  return ContentService.createTextOutput('EFKA client form endpoint is running.');
+  return ContentService.createTextOutput(
+    'EFKA client form endpoint is running. Version: ' +
+      SCRIPT_VERSION +
+      '. Client confirmation email: ' +
+      (SEND_CONFIRMATION ? 'on' : 'off') +
+      '.'
+  );
 }
 
 /**
