@@ -60,17 +60,19 @@ The **Site Key** goes into the website in step 6.
 2. Google asks for permission. Choose your account. If you see "Google hasn't
    verified this app", click **Advanced**, then **Go to EFKA client form**. It
    is your own script, so this warning is expected.
-3. Allow access. The script needs to edit this spreadsheet, send email as you,
-   and connect to an external service (Cloudflare, to check the bot test).
+3. Allow access. The script needs to edit this spreadsheet, send email
+   through your Gmail, and connect to an external service (Cloudflare, to
+   check the bot test).
 
 Check three things:
 
 - The sheet has a **Yanıtlar** tab with a header row and one row reading
   "TEST: delete this row". Delete that row (keep the header). The log at the
   bottom of the editor says which spreadsheet, tab and row it wrote to.
-- info@efka-consulting.com received two emails: "Müşteri ihtiyaç formu: TEST:
-  delete this row", with the answers as a PDF on EFKA letterhead attached, and
-  "Formunuz bize ulaştı", the thank-you a client receives.
+- info@efka-consulting.com received "Müşteri ihtiyaç formu: TEST: delete this
+  row", with the answers as a PDF on EFKA letterhead attached. (The client's
+  thank-you, "Formunuz bize ulaştı", is only sent to the address a client types
+  into the form, so `testSetup` does not send it.)
 - The log ends with "Turnstile: secret key accepted by Cloudflare." If it says
   the secret is not set or not recognised, redo the Script Properties part of
   step 3.
@@ -155,16 +157,33 @@ then need.)
   `SEND_CONFIRMATION` to `false` at the top of the script to turn it off.
 - **Replying:** if the client gave an email address, replying to the
   notification email goes straight to them.
-- **Limits:** Google Workspace accounts can send 1,500 emails a day from
-  scripts, far more than this form will need.
+- **Limits:** each submission sends two emails (the notification and the
+  client's thank-you). New and trial Workspace accounts can send about 100
+  emails a day from scripts, rising with the account's age and plan.
+- **Sender address:** emails come from donotreply@efka-consulting.com
+  (`SEND_FROM`) once the account the web app runs as may send as that
+  address. Add `donotreply` as an alternate email of that user in the Admin
+  console (**Directory → Users → user → User information**), then add it in
+  the user's Gmail under **Settings → Accounts → Send mail as**. Until then
+  emails come from the account itself; `testSetup` says which address is used.
+  Replies go to info@ (the thank-you's reply-to) or to the client (the
+  notification's reply-to). Google does not let a script send from any other
+  address.
+- **Email to outside addresses:** the domain needs SPF and DKIM records
+  (see the Google Admin console under **Apps → Google Workspace → Gmail →
+  Authenticate email**), or Gmail rejects the client's thank-you. Delivery of
+  each email can be checked in the Admin console under **Reporting → Email log
+  search**.
 - **Spam and forged requests:** every submission needs a Turnstile token that
   Cloudflare issued on efka-consulting.com, so the script URL is useless
-  without the website. On top of that, the form has a hidden field that only
-  bots fill in, the script drops submissions that arrive within three seconds
-  of the page opening, and it accepts at most 30 submissions an hour
-  (`MAX_PER_HOUR`). Rejected submissions are listed under **Executions** in the
-  Apps Script editor.
+  without the website. The script also accepts at most 30 submissions an hour
+  (`MAX_PER_HOUR`).
+- **What happened to a submission:** every submission is logged under
+  **Executions** in the Apps Script editor: where it was saved, whether the
+  notification and the thank-you went out, or why it was refused. A refused
+  submission shows the client the "please email us" message; nothing is
+  dropped silently.
 - **If the form stops accepting submissions:** check **Executions**. "Turnstile
-  rejected a submission" with "TURNSTILE_SECRET is not set" means the script
+  rejected the submission" with "TURNSTILE_SECRET is not set" means the script
   property is missing; "token issued on …" means the form was opened on a
   hostname that is not in `ALLOWED_HOSTNAMES` at the top of the script.

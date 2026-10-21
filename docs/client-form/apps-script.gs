@@ -14,9 +14,29 @@
  * "Status" column, say) are left alone.
  */
 
+// Shown when the web app URL is opened, so you can tell which version the live
+// deployment runs. Change it whenever the script changes.
+const SCRIPT_VERSION = '2026-10-21e (sends from donotreply@ when allowed)';
+
 const NOTIFY_TO = 'info@efka-consulting.com';
 const SHEET_NAME = 'Yanıtlar';
 const SENDER_NAME = 'EFKA Web Formu';
+
+// Emails go out through Gmail (GmailApp), the same way as an email written by
+// hand. Apps Script's own mail service (MailApp) had its emails to outside
+// addresses rejected by Gmail for this domain, while the same emails sent
+// through Gmail were delivered.
+//
+// The sender address. Google only lets the account the web app runs as send
+// from its own address or a "Send mail as" alias, so the script checks: while
+// this address is not one of the account's aliases, emails go out from the
+// account itself, and testSetup says so. Once it is added in that account's
+// Gmail (Settings → Accounts → "Send mail as"), emails come from it with no
+// change here. Leave it empty to always send from the account itself.
+// donotreply@ rather than info@, which belongs to another user. Replies still
+// reach info@: the thank-you sets it as the reply-to address and asks clients
+// to write there, and the notification's reply-to is the client.
+const SEND_FROM = 'donotreply@efka-consulting.com';
 
 // A short thank-you to the client, when they gave an email address. It does
 // not repeat their answers: anyone can type any address into the form, so an
@@ -29,9 +49,6 @@ const SEND_CONFIRMATION = true;
 const MAX_FIELDS = 80;
 const MAX_LABEL = 200;
 const MAX_VALUE = 5000;
-
-// Filling in this many fields takes far longer; anything quicker is a bot.
-const MIN_ELAPSED_MS = 3000;
 
 // Cloudflare Turnstile: every submission must carry a token that Cloudflare
 // issued to a visitor on one of these hostnames. The secret key is not in
@@ -58,19 +75,18 @@ function doPost(e) {
     return reply({ ok: false, error: 'bad-request' });
   }
 
-  // The website has a hidden "website" field that people never see. Bots
-  // fill it in, or submit within moments of loading the page. Answer as if
-  // it worked so they do not retry.
-  if (payload.website || Number(payload.elapsedMs) < MIN_ELAPSED_MS) {
-    return reply({ ok: true });
-  }
-
+  // Every outcome is logged, so Apps Script → Executions shows what happened
+  // to each submission. Nothing is dropped silently: a refused submission
+  // gets an error, and the client sees the "please email us" message.
   const fields = clean(payload.fields);
-  if (!fields.some((f) => f.value)) return reply({ ok: false, error: 'empty' });
+  if (!fields.some((f) => f.value)) {
+    console.warn('Refused: the submission had no answers.');
+    return reply({ ok: false, error: 'empty' });
+  }
 
   const check = verifyTurnstile(payload.turnstileToken);
   if (!check.ok) {
-    console.warn('Turnstile rejected a submission: ' + check.reason);
+    console.warn('Refused: Turnstile rejected the submission (' + check.reason + ').');
     return reply({ ok: false, error: 'verification' });
   }
 
@@ -80,10 +96,11 @@ function doPost(e) {
   lock.waitLock(20000);
   try {
     if (!withinHourlyLimit()) {
-      console.warn('Hourly limit of ' + MAX_PER_HOUR + ' submissions reached; submission refused.');
+      console.warn('Refused: the hourly limit of ' + MAX_PER_HOUR + ' submissions was reached.');
       return reply({ ok: false, error: 'busy' });
     }
-    appendRow(submittedAt, fields);
+    const written = appendRow(submittedAt, fields);
+    console.info('Saved to row ' + written.row + ' of the "' + written.sheet.getName() + '" tab.');
   } finally {
     lock.releaseLock();
   }
@@ -92,16 +109,22 @@ function doPost(e) {
   // (Apps Script → Executions) rather than reported to the client as an error.
   try {
     sendEmail(submittedAt, fields);
+    console.info('Notification emailed to ' + NOTIFY_TO + '.');
   } catch (err) {
-    console.error('Email failed: ' + err);
+    console.error('Notification email failed: ' + err);
   }
 
   const clientEmail = (fields.find((f) => f.key === 'email') || {}).value || '';
-  if (SEND_CONFIRMATION && isEmail(clientEmail)) {
+  if (!SEND_CONFIRMATION) {
+    console.info('No thank-you sent: SEND_CONFIRMATION is off.');
+  } else if (!isEmail(clientEmail)) {
+    console.info('No thank-you sent: the client gave no valid email address.');
+  } else {
     try {
       sendConfirmation(clientEmail);
+      console.info('Thank-you emailed to the client at ' + clientEmail + '.');
     } catch (err) {
-      console.error('Confirmation email failed: ' + err);
+      console.error('Thank-you email to ' + clientEmail + ' failed: ' + err);
     }
   }
 
@@ -110,13 +133,21 @@ function doPost(e) {
 
 /** Opening the web app URL in a browser shows this, which confirms the deployment. */
 function doGet() {
-  return ContentService.createTextOutput('EFKA client form endpoint is running.');
+  return ContentService.createTextOutput(
+    'EFKA client form endpoint is running. Version: ' +
+      SCRIPT_VERSION +
+      '. Client confirmation email: ' +
+      (SEND_CONFIRMATION ? 'on' : 'off') +
+      '.'
+  );
 }
 
 /**
  * Run this once from the editor (select it, press Run) before deploying. It
  * asks for the permissions the script needs, then writes a test row and sends
- * a test email, so you can check both before any client uses the form.
+ * the notification to NOTIFY_TO, so you can check both before any client uses
+ * the form. The client's thank-you is only ever sent to the address a client
+ * types into the form.
  */
 function testSetup() {
   const fields = clean([
@@ -143,10 +174,18 @@ function testSetup() {
       NOTIFY_TO
   );
 
-  // What a client receives, sent to you so you can see it.
-  sendConfirmation(NOTIFY_TO);
-
   console.log(checkTurnstileSecret());
+  console.log(
+    senderAddress()
+      ? 'Sender: emails go out from ' + senderAddress() + '.'
+      : SEND_FROM
+        ? 'Sender: emails go out from ' +
+          Session.getEffectiveUser().getEmail() +
+          ', because ' +
+          SEND_FROM +
+          ' is not a "Send mail as" address of this account yet. Add it in Gmail under Settings → Accounts.'
+        : 'Sender: emails go out from ' + Session.getEffectiveUser().getEmail() + '.'
+  );
 }
 
 /**
@@ -333,7 +372,9 @@ function sendEmail(submittedAt, fields) {
     console.error('PDF failed: ' + err);
   }
 
-  MailApp.sendEmail(NOTIFY_TO, 'Müşteri ihtiyaç formu: ' + name, text, options);
+  const from = senderAddress();
+  if (from) options.from = from;
+  GmailApp.sendEmail(NOTIFY_TO, 'Müşteri ihtiyaç formu: ' + name, text, options);
 }
 
 /**
@@ -392,14 +433,14 @@ function sendConfirmation(to) {
     'Merhaba,\n\n' +
     'Ev personeli ihtiyaç formunuz bize ulaştı, teşekkür ederiz. Yanıtlarınızı inceleyip en kısa sürede ' +
     'sizinle iletişime geçeceğiz.\n\n' +
-    'Sorularınız için bu e-postayı yanıtlayabilir ya da ' +
+    'Sorularınız için ' +
     NOTIFY_TO +
     ' adresine yazabilirsiniz.';
   const en =
     'Hello,\n\n' +
     'Thank you, we have received your household worker requirements form. We will review your answers ' +
     'and get back to you shortly.\n\n' +
-    'If you have any questions, reply to this email or write to ' +
+    'If you have any questions, please write to ' +
     NOTIFY_TO +
     '.';
   const ignore =
@@ -428,12 +469,21 @@ function sendConfirmation(to) {
 
   const text = tr + '\n\nEFKA Consulting\n\n---\n\n' + en + '\n\nEFKA Consulting\n\n' + ignore;
 
-  MailApp.sendEmail(to, subject, text, {
+  const options = {
     name: 'EFKA Consulting',
     htmlBody: html,
     replyTo: NOTIFY_TO,
     inlineImages: { logo: Utilities.newBlob(Utilities.base64Decode(LOGO_PNG), 'image/png', 'efka.png') },
-  });
+  };
+  const from = senderAddress();
+  if (from) options.from = from;
+  GmailApp.sendEmail(to, subject, text, options);
+}
+
+/** SEND_FROM if this account may send as it, otherwise '' (the account's own address). */
+function senderAddress() {
+  if (!SEND_FROM) return '';
+  return GmailApp.getAliases().indexOf(SEND_FROM) !== -1 ? SEND_FROM : '';
 }
 
 function isEmail(value) {

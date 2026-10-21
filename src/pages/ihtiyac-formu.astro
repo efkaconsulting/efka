@@ -332,11 +332,6 @@ const isText = (field: Field) => ['text', 'email', 'tel', 'number', 'textarea'].
           ))
         }
 
-        <!-- Bots fill in every field; people never see this one. -->
-        <div class="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
-          <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
-        </div>
-
         <div class="border-t border-gold/40 pt-10">
           <div class="mt-10 flex flex-col items-center gap-4">
             <!-- Cloudflare Turnstile bot check. Usually invisible; it only shows a
@@ -480,7 +475,6 @@ const isText = (field: Field) => ['text', 'email', 'tel', 'number', 'textarea'].
     if (!form || form.dataset.ready) return;
     form.dataset.ready = 'true';
 
-    const startedAt = Date.now();
     const endpoint = form.dataset.endpoint ?? '';
     const messages: Record<string, string> = JSON.parse(form.dataset.messages ?? '{}');
     const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
@@ -622,8 +616,6 @@ const isText = (field: Field) => ['text', 'email', 'tel', 'number', 'textarea'].
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             fields,
-            website: form.querySelector<HTMLInputElement>('input[name="website"]')?.value ?? '',
-            elapsedMs: Date.now() - startedAt,
             turnstileToken: token,
           }),
         });
