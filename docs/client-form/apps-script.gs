@@ -16,7 +16,7 @@
 
 // Shown when the web app URL is opened, so you can tell which version the live
 // deployment runs. Change it whenever the script changes.
-const SCRIPT_VERSION = '2026-10-21c (sends through Gmail)';
+const SCRIPT_VERSION = '2026-10-21d (sends from info@ when allowed)';
 
 const NOTIFY_TO = 'info@efka-consulting.com';
 const SHEET_NAME = 'Yanıtlar';
@@ -27,11 +27,13 @@ const SENDER_NAME = 'EFKA Web Formu';
 // addresses rejected by Gmail for this domain, while the same emails sent
 // through Gmail were delivered.
 //
-// They are sent from the account the web app runs as. To send from another
-// address, such as info@efka-consulting.com, first add it in that account's
-// Gmail under Settings → Accounts → "Send mail as", then put it here. Leave it
-// empty to send from the account itself.
-const SEND_FROM = '';
+// The sender address. Google only lets the account the web app runs as send
+// from its own address or a "Send mail as" alias, so the script checks: while
+// this address is not one of the account's aliases, emails go out from the
+// account itself, and testSetup says so. Once it is added in that account's
+// Gmail (Settings → Accounts → "Send mail as"), emails come from it with no
+// change here. Leave it empty to always send from the account itself.
+const SEND_FROM = 'info@efka-consulting.com';
 
 // A short thank-you to the client, when they gave an email address. It does
 // not repeat their answers: anyone can type any address into the form, so an
@@ -170,6 +172,17 @@ function testSetup() {
   );
 
   console.log(checkTurnstileSecret());
+  console.log(
+    senderAddress()
+      ? 'Sender: emails go out from ' + senderAddress() + '.'
+      : SEND_FROM
+        ? 'Sender: emails go out from ' +
+          Session.getEffectiveUser().getEmail() +
+          ', because ' +
+          SEND_FROM +
+          ' is not a "Send mail as" address of this account yet. Add it in Gmail under Settings → Accounts.'
+        : 'Sender: emails go out from ' + Session.getEffectiveUser().getEmail() + '.'
+  );
 }
 
 /**
@@ -356,7 +369,8 @@ function sendEmail(submittedAt, fields) {
     console.error('PDF failed: ' + err);
   }
 
-  if (SEND_FROM) options.from = SEND_FROM;
+  const from = senderAddress();
+  if (from) options.from = from;
   GmailApp.sendEmail(NOTIFY_TO, 'Müşteri ihtiyaç formu: ' + name, text, options);
 }
 
@@ -416,14 +430,14 @@ function sendConfirmation(to) {
     'Merhaba,\n\n' +
     'Ev personeli ihtiyaç formunuz bize ulaştı, teşekkür ederiz. Yanıtlarınızı inceleyip en kısa sürede ' +
     'sizinle iletişime geçeceğiz.\n\n' +
-    'Sorularınız için bu e-postayı yanıtlayabilir ya da ' +
+    'Sorularınız için ' +
     NOTIFY_TO +
     ' adresine yazabilirsiniz.';
   const en =
     'Hello,\n\n' +
     'Thank you, we have received your household worker requirements form. We will review your answers ' +
     'and get back to you shortly.\n\n' +
-    'If you have any questions, reply to this email or write to ' +
+    'If you have any questions, please write to ' +
     NOTIFY_TO +
     '.';
   const ignore =
@@ -458,8 +472,15 @@ function sendConfirmation(to) {
     replyTo: NOTIFY_TO,
     inlineImages: { logo: Utilities.newBlob(Utilities.base64Decode(LOGO_PNG), 'image/png', 'efka.png') },
   };
-  if (SEND_FROM) options.from = SEND_FROM;
+  const from = senderAddress();
+  if (from) options.from = from;
   GmailApp.sendEmail(to, subject, text, options);
+}
+
+/** SEND_FROM if this account may send as it, otherwise '' (the account's own address). */
+function senderAddress() {
+  if (!SEND_FROM) return '';
+  return GmailApp.getAliases().indexOf(SEND_FROM) !== -1 ? SEND_FROM : '';
 }
 
 function isEmail(value) {
