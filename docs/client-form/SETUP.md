@@ -60,8 +60,9 @@ The **Site Key** goes into the website in step 6.
 2. Google asks for permission. Choose your account. If you see "Google hasn't
    verified this app", click **Advanced**, then **Go to EFKA client form**. It
    is your own script, so this warning is expected.
-3. Allow access. The script needs to edit this spreadsheet, send email as you,
-   and connect to an external service (Cloudflare, to check the bot test).
+3. Allow access. The script needs to edit this spreadsheet, send email
+   through your Gmail, and connect to an external service (Cloudflare, to
+   check the bot test).
 
 Check three things:
 
@@ -156,8 +157,18 @@ then need.)
   `SEND_CONFIRMATION` to `false` at the top of the script to turn it off.
 - **Replying:** if the client gave an email address, replying to the
   notification email goes straight to them.
-- **Limits:** Google Workspace accounts can send 1,500 emails a day from
-  scripts, far more than this form will need.
+- **Limits:** each submission sends two emails (the notification and the
+  client's thank-you). New and trial Workspace accounts can send about 100
+  emails a day from scripts, rising with the account's age and plan.
+- **Sender address:** emails come from the account the web app runs as. To
+  send from info@efka-consulting.com instead, add it in that account's Gmail
+  under **Settings → Accounts → Send mail as**, then set `SEND_FROM` at the top
+  of the script and deploy a new version.
+- **Email to outside addresses:** the domain needs SPF and DKIM records
+  (see the Google Admin console under **Apps → Google Workspace → Gmail →
+  Authenticate email**), or Gmail rejects the client's thank-you. Delivery of
+  each email can be checked in the Admin console under **Reporting → Email log
+  search**.
 - **Spam and forged requests:** every submission needs a Turnstile token that
   Cloudflare issued on efka-consulting.com, so the script URL is useless
   without the website. The script also accepts at most 30 submissions an hour

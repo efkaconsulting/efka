@@ -16,11 +16,22 @@
 
 // Shown when the web app URL is opened, so you can tell which version the live
 // deployment runs. Change it whenever the script changes.
-const SCRIPT_VERSION = '2026-10-21b (every submission logged, no hidden-field filter)';
+const SCRIPT_VERSION = '2026-10-21c (sends through Gmail)';
 
 const NOTIFY_TO = 'info@efka-consulting.com';
 const SHEET_NAME = 'Yanıtlar';
 const SENDER_NAME = 'EFKA Web Formu';
+
+// Emails go out through Gmail (GmailApp), the same way as an email written by
+// hand. Apps Script's own mail service (MailApp) had its emails to outside
+// addresses rejected by Gmail for this domain, while the same emails sent
+// through Gmail were delivered.
+//
+// They are sent from the account the web app runs as. To send from another
+// address, such as info@efka-consulting.com, first add it in that account's
+// Gmail under Settings → Accounts → "Send mail as", then put it here. Leave it
+// empty to send from the account itself.
+const SEND_FROM = '';
 
 // A short thank-you to the client, when they gave an email address. It does
 // not repeat their answers: anyone can type any address into the form, so an
@@ -345,7 +356,8 @@ function sendEmail(submittedAt, fields) {
     console.error('PDF failed: ' + err);
   }
 
-  MailApp.sendEmail(NOTIFY_TO, 'Müşteri ihtiyaç formu: ' + name, text, options);
+  if (SEND_FROM) options.from = SEND_FROM;
+  GmailApp.sendEmail(NOTIFY_TO, 'Müşteri ihtiyaç formu: ' + name, text, options);
 }
 
 /**
@@ -440,12 +452,14 @@ function sendConfirmation(to) {
 
   const text = tr + '\n\nEFKA Consulting\n\n---\n\n' + en + '\n\nEFKA Consulting\n\n' + ignore;
 
-  MailApp.sendEmail(to, subject, text, {
+  const options = {
     name: 'EFKA Consulting',
     htmlBody: html,
     replyTo: NOTIFY_TO,
     inlineImages: { logo: Utilities.newBlob(Utilities.base64Decode(LOGO_PNG), 'image/png', 'efka.png') },
-  });
+  };
+  if (SEND_FROM) options.from = SEND_FROM;
+  GmailApp.sendEmail(to, subject, text, options);
 }
 
 function isEmail(value) {
