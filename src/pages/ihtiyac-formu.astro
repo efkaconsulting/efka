@@ -47,7 +47,7 @@ const isText = (field: Field) => ['text', 'email', 'tel', 'number', 'textarea'].
   <!-- Title — NAVY (first band, no seam above) ************************ -->
 
   <div class="dark">
-    <Hero tagline="EFKA Consulting">
+    <Hero tagline={`<span lang="en">EFKA Consulting</span>`}>
       <Fragment slot="bg">
         <BandBg tone="navy" seam={false} />
       </Fragment>
@@ -337,13 +337,11 @@ const isText = (field: Field) => ['text', 'email', 'tel', 'number', 'textarea'].
             <!-- Cloudflare Turnstile bot check. Usually invisible; it only shows a
                  checkbox when Cloudflare wants the visitor to confirm. -->
             <div data-turnstile data-sitekey={TURNSTILE_SITE_KEY}></div>
-            <button
-              type="submit"
-              class="btn-primary w-full sm:w-80"
-              data-idle={trEn(f.submit)}
-              data-busy={trEn(f.sending)}
-            >
-              {trEn(f.submit)}
+            <button type="submit" class="btn-primary w-full sm:w-80">
+              <!-- Both labels live in the markup so the English half keeps lang="en";
+                   the button is uppercased, and under tr-TR an English "i" becomes "İ". -->
+              <span data-label-idle>{f.submit.tr} · <span lang="en">{f.submit.en}</span></span>
+              <span data-label-busy hidden>{f.sending.tr} · <span lang="en">{f.sending.en}</span></span>
             </button>
             <p data-status-verifying hidden role="status" class="text-muted text-center text-sm">
               {f.verifying.tr}
@@ -481,6 +479,12 @@ const isText = (field: Field) => ['text', 'email', 'tel', 'number', 'textarea'].
     const error = form.querySelector<HTMLElement>('[data-status-error]')!;
     const verifying = form.querySelector<HTMLElement>('[data-status-verifying]')!;
     const success = document.querySelector<HTMLElement>('[data-status-success]')!;
+    const idleLabel = button.querySelector<HTMLElement>('[data-label-idle]')!;
+    const busyLabel = button.querySelector<HTMLElement>('[data-label-busy]')!;
+    const setBusy = (busy: boolean) => {
+      idleLabel.hidden = busy;
+      busyLabel.hidden = !busy;
+    };
 
     const turnstile = () => (window as unknown as { turnstile?: Turnstile }).turnstile;
     const box = form.querySelector<HTMLElement>('[data-turnstile]')!;
@@ -605,7 +609,7 @@ const isText = (field: Field) => ['text', 'email', 'tel', 'number', 'textarea'].
       const fields = collect(form);
 
       button.disabled = true;
-      button.textContent = button.dataset.busy ?? '';
+      setBusy(true);
 
       try {
         if (!endpoint) throw new Error('No CLIENT_FORM_ENDPOINT configured');
@@ -632,7 +636,7 @@ const isText = (field: Field) => ['text', 'email', 'tel', 'number', 'textarea'].
         // A token can be used only once, so get a fresh one for the next try.
         if (widgetId) turnstile()?.reset(widgetId);
         button.disabled = false;
-        button.textContent = button.dataset.idle ?? '';
+        setBusy(false);
       }
     });
   };
