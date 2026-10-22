@@ -62,6 +62,8 @@ export const en: typeof tr = {
     secondaryLinks: [{ text: 'KVKK Notice (Turkish)', href: '/kvkk' }] as Array<{ text: string; href: string }>,
     socialLabels: { instagram: 'Instagram', linkedin: 'LinkedIn', email: 'Email' },
     footNote: 'consulting · All rights reserved.',
+    // The İŞKUR notice is a Turkish legal text, so both locales show it as issued.
+    legal: tr.footer.legal,
   },
 
   home: {

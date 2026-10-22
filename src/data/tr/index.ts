@@ -67,6 +67,21 @@ export const tr = {
     secondaryLinks: [{ text: 'KVKK Aydınlatma Metni', href: '/kvkk' }] as Array<{ text: string; href: string }>,
     socialLabels: { instagram: 'Instagram', linkedin: 'LinkedIn', email: 'E-posta' },
     footNote: 'consulting · Tüm hakları saklıdır.',
+    // İŞKUR private employment agency notice, shown beside the authority's logo.
+    legal: {
+      title: 'Yasal Bilgilendirme',
+      logoAlt: 'İŞKUR Özel İstihdam Bürosu logosu',
+      paragraphs: [
+        `EFKA Consulting adıyla faaliyet gösteren EFKA Danışmanlık Limited Şirketi, Türkiye İş
+          Kurumu Kayseri Çalışma ve İş Kurumu İl Müdürlüğünün 20.10.2026 tarihli ve 21732179 sayılı
+          kararı uyarınca düzenlenen, 19.10.2026 tarihli ve 2054 numaralı Özel İstihdam Bürosu İzin
+          Belgesi ile faaliyet göstermektedir.`,
+        '4904 sayılı Kanun uyarınca iş arayanlardan ücret alınması ve menfaat temin edilmesi yasaktır.',
+        'Şikâyetleriniz için Kayseri Çalışma ve İş Kurumu İl Müdürlüğüne başvurabilirsiniz.',
+        `Adres: Selimiye Mahallesi, Osman Kavuncu Bulvarı No: 429, Melikgazi/Kayseri · Telefon:
+          0352 231 12 45`,
+      ],
+    },
   },
 
   home: {
