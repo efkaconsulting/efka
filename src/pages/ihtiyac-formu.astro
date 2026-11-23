@@ -272,8 +272,6 @@ const isRequired = (field: Field) => 'required' in field && !!field.required;
                       </label>
                       {text.type === 'textarea' ? (
                         <textarea id={id} name={field.key} rows="4" maxlength="3000" class:list={[control, 'w-full']} />
-                      ) : text.type === 'date' ? (
-                        <input id={id} type="date" name={field.key} data-future class:list={[control, 'w-full']} />
                       ) : (
                         <input
                           id={id}
@@ -305,11 +303,7 @@ const isRequired = (field: Field) => 'required' in field && !!field.required;
         }
 
         <div class="border-t border-gold/40 pt-10">
-          <p class="text-center italic">
-            {f.dayOffNote.tr}
-            <span lang="en" class="text-muted mt-1 block text-sm">{f.dayOffNote.en}</span>
-          </p>
-          <div class="mt-10 flex flex-col items-center gap-4">
+          <div class="flex flex-col items-center gap-4">
             <!-- Cloudflare Turnstile bot check. Usually invisible; it only shows a
                  checkbox when Cloudflare wants the visitor to confirm. -->
             <div data-turnstile data-sitekey={TURNSTILE_SITE_KEY}></div>
@@ -422,9 +416,6 @@ const isRequired = (field: Field) => 'required' in field && !!field.required;
           .join(', ');
       } else if (type === 'select') {
         value = selectedLabel(el.querySelector('select'));
-      } else if (type === 'date') {
-        const date = el.querySelector<HTMLInputElement>('input')?.value ?? '';
-        value = date ? formatDate(date) : '';
       } else if (type === 'slots') {
         const slots = Array.from(el.querySelectorAll<HTMLInputElement>('input[data-slot]'))
           .map((input) => input.value)
@@ -478,12 +469,11 @@ const isRequired = (field: Field) => 'required' in field && !!field.required;
       else window.addEventListener('turnstile-ready', render, { once: true });
     }
 
-    // Interview slots and the start date begin tomorrow.
+    // Interview slots begin tomorrow.
     const tomorrow = new Date(Date.now() + 86400000);
     const pad = (n: number) => String(n).padStart(2, '0');
     const minDate = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}`;
     form.querySelectorAll<HTMLInputElement>('input[data-slot]').forEach((input) => (input.min = `${minDate}T00:00`));
-    form.querySelectorAll<HTMLInputElement>('input[data-future]').forEach((input) => (input.min = minDate));
 
     const show = (el: HTMLElement, visible: boolean) => {
       el.hidden = !visible;
@@ -558,7 +548,6 @@ const isRequired = (field: Field) => 'required' in field && !!field.required;
         if (!c.validity.valueMissing) {
           if (c.type === 'email') message = messages.email;
           else if (c.type === 'datetime-local') message = messages.future;
-          else if (c.type === 'date') message = messages.futureDate;
           else if (c.type === 'number') {
             const input = c as HTMLInputElement;
             message = messages.number.replaceAll('{min}', input.min).replaceAll('{max}', input.max || '…');

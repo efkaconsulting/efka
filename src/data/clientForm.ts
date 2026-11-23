@@ -1,7 +1,8 @@
 /*
  * The household client requirements form. First built from
  * EFKA_Client_Requirements_Form_.docx; the section order, new questions and
- * conditions come from "Client Intake Form Changes.pdf" (21 November 2026).
+ * conditions come from "Client Intake Form Changes.pdf" (21 November 2026),
+ * and the removals from "ClientIntakeFormChanges_V2.pdf" (23 November 2026).
  *
  * The page shows Turkish first with English underneath. Labels are the
  * documents' own wording.
@@ -57,7 +58,7 @@ interface Common extends Bilingual {
 
 export type Field =
   | (Common & {
-      type: 'text' | 'email' | 'tel' | 'number' | 'textarea' | 'date';
+      type: 'text' | 'email' | 'tel' | 'number' | 'textarea';
       required?: boolean;
       autocomplete?: string;
       placeholder?: Bilingual;
@@ -322,25 +323,6 @@ export const clientForm = {
           tr: 'Evcil hayvan türü ve sayısı',
         },
         {
-          key: 'cameras',
-          type: 'radio',
-          en: 'Is there a camera system in the house?',
-          tr: 'Evde kamera sistemi var mı?',
-          hint: {
-            en: 'Cameras may not be installed in the worker’s room.',
-            tr: 'Çalışanın odasında kamera bulunamaz.',
-          },
-          options: [YES, NO],
-        },
-        {
-          key: 'cameraDetails',
-          type: 'text',
-          showIf: { key: 'cameras', anyOf: ['yes'] },
-          placeholder: { en: 'Which areas?', tr: 'Hangi alanlarda?' },
-          en: 'Camera details',
-          tr: 'Kamera detayları',
-        },
-        {
           key: 'otherStaff',
           type: 'radio',
           en: 'Any other staff working in the house?',
@@ -388,30 +370,6 @@ export const clientForm = {
             { value: 'holidays', en: 'Accompany family on holidays', tr: 'Aileyle tatile eşlik' },
             { value: 'driving', en: 'Driving', tr: 'Araç kullanma' },
             OTHER,
-          ],
-        },
-        {
-          key: 'dayOff',
-          type: 'radio',
-          wide: true,
-          en: 'Preferred weekly day off',
-          tr: 'Haftalık izin günü tercihi',
-          options: [
-            { value: 'weekday', en: 'Weekday', tr: 'Hafta içi' },
-            { value: 'weekend', en: 'Weekend', tr: 'Hafta sonu' },
-            { value: 'any', en: 'No preference', tr: 'Fark etmez' },
-          ],
-        },
-        {
-          key: 'phoneUse',
-          type: 'radio',
-          wide: true,
-          en: 'Mobile phone use during working hours',
-          tr: 'Mesai sırasında cep telefonu kullanımı',
-          options: [
-            { value: 'allowed', en: 'Allowed', tr: 'Serbest' },
-            { value: 'limited', en: 'Limited', tr: 'Sınırlı' },
-            { value: 'notAllowed', en: 'Not allowed', tr: 'İzin yok' },
           ],
         },
       ],
@@ -486,8 +444,8 @@ export const clientForm = {
     },
     {
       key: 'eligibility',
-      en: '7. Eligibility, start & interviews',
-      tr: '7. Uygunluk, başlangıç ve görüşmeler',
+      en: '7. Eligibility & interviews',
+      tr: '7. Uygunluk ve görüşmeler',
       fields: [
         {
           key: 'householdIncome',
@@ -503,12 +461,6 @@ export const clientForm = {
               tr: 'Aylık hane gelirimin 200.000 TL’nin üzerinde olduğunu resmî belgelerle gösterebilirim.',
             },
           ],
-        },
-        {
-          key: 'startDate',
-          type: 'date',
-          en: 'Desired start date',
-          tr: 'İstenen başlangıç tarihi',
         },
         {
           key: 'interviewAvailability',
@@ -535,12 +487,6 @@ export const clientForm = {
   choose: { en: 'Choose', tr: 'Seçiniz' },
 
   slot: { en: 'Choice', tr: 'tercih' },
-
-  // Plain text just above the Submit button, not a question.
-  dayOffNote: {
-    en: 'The worker has one day off per week and may go out, but spends the night at home.',
-    tr: 'Çalışan haftada bir gün izin kullanır; izin gününde dışarı çıkabilir, geceyi evde geçirir.',
-  },
 
   // A short notice with a link, in place of the consent checkbox.
   privacy: {
@@ -580,10 +526,6 @@ export const clientForm = {
     future: {
       en: 'Please choose a date and time from tomorrow on.',
       tr: 'Lütfen yarından itibaren bir tarih ve saat seçin.',
-    },
-    futureDate: {
-      en: 'Please choose a date from tomorrow on.',
-      tr: 'Lütfen yarından itibaren bir tarih seçin.',
     },
   },
 
