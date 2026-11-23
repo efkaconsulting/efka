@@ -1,10 +1,10 @@
 /*
- * The household client requirements form, from EFKA_Client_Requirements_Form_.docx.
+ * The household client requirements form. First built from
+ * EFKA_Client_Requirements_Form_.docx; the section order, new questions and
+ * conditions come from "Client Intake Form Changes.pdf" (21 November 2026).
  *
- * The document is bilingual, English first with Turkish underneath; the page
- * shows Turkish first with English underneath. Labels are the document's own
- * wording, except where the web form asks differently (drop-downs, date
- * pickers) and the few fields noted below.
+ * The page shows Turkish first with English underneath. Labels are the
+ * documents' own wording.
  *
  * The page renders from this list, and each submission carries the labels
  * with the answers, so the Google Sheet's column headers and the notification
@@ -46,23 +46,28 @@ interface Common extends Bilingual {
   key: string;
   /** Spans both columns on wide screens. */
   wide?: boolean;
-  /** Shown only while one of these options is chosen in another field. */
+  /** A short note shown under the label. */
+  hint?: Bilingual;
+  /**
+   * Shown only while one of these options is chosen in another field (a
+   * radio, checkbox or drop-down).
+   */
   showIf?: { key: string; anyOf: string[] };
 }
 
 export type Field =
   | (Common & {
-      type: 'text' | 'email' | 'tel' | 'number' | 'textarea';
+      type: 'text' | 'email' | 'tel' | 'number' | 'textarea' | 'date';
       required?: boolean;
       autocomplete?: string;
       placeholder?: Bilingual;
       min?: number;
       max?: number;
     })
-  | (Common & { type: 'radio' | 'checkbox' | 'select'; options: Option[] })
+  /** A required checkbox field must have at least its single option ticked. */
+  | (Common & { type: 'radio' | 'checkbox'; required?: boolean; options: Option[] })
+  | (Common & { type: 'select'; options: Option[] })
   | (Common & { type: 'range'; unit: Bilingual; min: number; max: number; defaults: [number, number] })
-  /** One age drop-down per child, as many as the answer to `countFrom`. */
-  | (Common & { type: 'ages'; countFrom: string; max: number })
   /** Up to `count` date-and-time pickers, plus a free-text note. */
   | (Common & { type: 'slots'; count: number; note: Bilingual });
 
@@ -77,9 +82,14 @@ const sections = (list: Section[]) => list;
 
 const YES = { value: 'yes', en: 'Yes', tr: 'Evet' };
 const NO = { value: 'no', en: 'No', tr: 'Hayır' };
+const PREFERRED = { value: 'preferred', en: 'Preferred', tr: 'Tercihen' };
 const OTHER = { value: 'other', en: 'Other', tr: 'Diğer', detail: { en: 'Please specify', tr: 'Belirtiniz' } };
 
-const COUNT = ['0', '1', '2', '3', '4', '5+'].map((n) => ({ value: n, en: n, tr: n }));
+const numbers = (list: string[]) => list.map((n) => ({ value: n, en: n, tr: n }));
+const COUNT = numbers(['0', '1', '2', '3', '4', '5+']);
+
+// Questions that only apply to elderly or patient care.
+const CARE_RECIPIENT = { key: 'primaryRole', anyOf: ['elderly', 'patient'] };
 
 export const clientForm = {
   meta: {
@@ -101,8 +111,8 @@ export const clientForm = {
   sections: sections([
     {
       key: 'contact',
-      en: '1. Client & household contact',
-      tr: '1. Müşteri ve hane iletişim bilgileri',
+      en: '1. Contact details',
+      tr: '1. İletişim bilgileri',
       fields: [
         {
           key: 'clientName',
@@ -132,13 +142,13 @@ export const clientForm = {
           key: 'email',
           type: 'email',
           autocomplete: 'email',
-          placeholder: { en: 'name@example.com', tr: 'ad@ornek.com' },
+          placeholder: { en: 'ad@ornek.com', tr: 'ad@ornek.com' },
           en: 'Email',
           tr: 'E-posta',
         },
         {
           key: 'contactMethod',
-          type: 'checkbox',
+          type: 'radio',
           wide: true,
           en: 'Preferred contact method',
           tr: 'Tercih edilen iletişim yöntemi',
@@ -148,6 +158,69 @@ export const clientForm = {
             { value: 'email', en: 'Email', tr: 'E-posta' },
           ],
         },
+      ],
+    },
+    {
+      key: 'service',
+      en: '2. Service type & care needs',
+      tr: '2. Hizmet türü ve bakım ihtiyacı',
+      fields: [
+        {
+          key: 'primaryRole',
+          type: 'radio',
+          required: true,
+          wide: true,
+          en: 'Primary role',
+          tr: 'Temel görev',
+          options: [
+            { value: 'nanny', en: 'Nanny / infant-child care', tr: 'Dadı / bebek-çocuk bakımı' },
+            { value: 'elderly', en: 'Elderly care', tr: 'Yaşlı bakımı' },
+            { value: 'patient', en: 'Patient care', tr: 'Hasta bakımı' },
+            { value: 'household', en: 'Household help', tr: 'Ev yardımcısı' },
+          ],
+        },
+        {
+          key: 'infantExperience',
+          type: 'radio',
+          wide: true,
+          showIf: { key: 'primaryRole', anyOf: ['nanny'] },
+          en: 'Prior newborn / infant experience required?',
+          tr: 'Yenidoğan / bebek bakım deneyimi gerekli mi?',
+          options: [YES, PREFERRED, { value: 'na', en: 'Not applicable', tr: 'İlgili değil' }],
+        },
+        // Same key as the earlier free-text "ages of persons receiving care",
+        // so answers stay in one column.
+        {
+          key: 'careAges',
+          type: 'number',
+          min: 0,
+          max: 120,
+          showIf: CARE_RECIPIENT,
+          en: 'Age of the person to be cared for',
+          tr: 'Bakılacak kişinin yaşı',
+        },
+        {
+          key: 'careSameAddress',
+          type: 'radio',
+          showIf: CARE_RECIPIENT,
+          en: 'Does the person to be cared for live at the employer’s address?',
+          tr: 'Bakılacak kişi işverenle aynı adreste mi yaşıyor?',
+          options: [YES, NO],
+        },
+        {
+          key: 'specialNeeds',
+          type: 'textarea',
+          wide: true,
+          en: 'Special care needs or relevant instructions, if any',
+          tr: 'Varsa özel bakım ihtiyaçları veya ilgili talimatlar',
+        },
+      ],
+    },
+    {
+      key: 'household',
+      en: '3. Household',
+      tr: '3. Hane bilgileri',
+      fields: [
         {
           key: 'adults',
           type: 'select',
@@ -155,23 +228,43 @@ export const clientForm = {
           tr: 'Evde yaşayan yetişkin sayısı',
           options: COUNT,
         },
+        {
+          key: 'adultsDetails',
+          type: 'text',
+          placeholder: { en: 'e.g. Female 38, Male 41', tr: 'Örn. Kadın 38, Erkek 41' },
+          en: 'Ages and genders of adults',
+          tr: 'Yetişkinlerin yaş ve cinsiyetleri',
+        },
         { key: 'children', type: 'select', en: 'Number of children', tr: 'Çocuk sayısı', options: COUNT },
-        // Not a free-text box as in the document: one drop-down per child.
+        // Same key as the earlier one-drop-down-per-child ages, so answers stay in one column.
         {
           key: 'childrenAges',
-          type: 'ages',
-          countFrom: 'children',
-          max: 6,
-          wide: true,
-          en: 'Children’s ages',
-          tr: 'Çocukların yaşları',
+          type: 'text',
+          showIf: { key: 'children', anyOf: ['1', '2', '3', '4', '5+'] },
+          placeholder: { en: 'e.g. Girl 2, Boy 5', tr: 'Örn. Kız 2, Erkek 5' },
+          en: 'Ages and genders of children',
+          tr: 'Çocukların yaş ve cinsiyetleri',
+        },
+        {
+          key: 'dietaryRestrictions',
+          type: 'radio',
+          en: 'Any family members with dietary restrictions?',
+          tr: 'Beslenme kısıtı olan aile üyesi var mı?',
+          options: [NO, YES],
+        },
+        {
+          key: 'dietaryDetails',
+          type: 'text',
+          showIf: { key: 'dietaryRestrictions', anyOf: ['yes'] },
+          en: 'Dietary restriction details',
+          tr: 'Beslenme kısıtı detayları',
         },
       ],
     },
     {
       key: 'home',
-      en: '2. Home & accommodation',
-      tr: '2. Ev ve konaklama koşulları',
+      en: '4. Home & accommodation',
+      tr: '4. Ev ve konaklama',
       fields: [
         {
           key: 'propertyType',
@@ -184,6 +277,20 @@ export const clientForm = {
             { value: 'house', en: 'Detached house / villa', tr: 'Müstakil ev / villa' },
             OTHER,
           ],
+        },
+        {
+          key: 'bedrooms',
+          type: 'select',
+          en: 'Number of bedrooms',
+          tr: 'Yatak odası sayısı',
+          options: numbers(['1', '2', '3', '4', '5+']),
+        },
+        {
+          key: 'bathrooms',
+          type: 'select',
+          en: 'Number of bathrooms',
+          tr: 'Banyo sayısı',
+          options: numbers(['1', '2', '3', '4+']),
         },
         {
           key: 'privateBedroom',
@@ -202,65 +309,58 @@ export const clientForm = {
         {
           key: 'pets',
           type: 'radio',
-          wide: true,
           en: 'Pets in household?',
           tr: 'Evcil hayvan var mı?',
-          options: [NO, { value: 'yes', en: 'Yes', tr: 'Evet', detail: { en: 'Type / number', tr: 'Türü / sayısı' } }],
+          options: [NO, YES],
         },
-      ],
-    },
-    {
-      key: 'position',
-      en: '3. Position & care requirements',
-      tr: '3. Pozisyon ve bakım ihtiyaçları',
-      fields: [
         {
-          key: 'primaryRole',
-          type: 'checkbox',
-          wide: true,
-          en: 'Primary role',
-          tr: 'Temel görev',
-          options: [
-            { value: 'nanny', en: 'Nanny / infant-child care', tr: 'Dadı / bebek-çocuk bakımı' },
-            { value: 'elderly', en: 'Elderly care', tr: 'Yaşlı bakımı' },
-            { value: 'patient', en: 'Patient care', tr: 'Hasta bakımı' },
-            { value: 'household', en: 'Household help', tr: 'Ev yardımcısı' },
-          ],
-        },
-        // Children's ages are asked above, so this is only for elderly or patient care.
-        {
-          key: 'careAges',
+          key: 'petDetails',
           type: 'text',
-          wide: true,
-          showIf: { key: 'primaryRole', anyOf: ['elderly', 'patient'] },
-          en: 'Age(s) of person(s) receiving care',
-          tr: 'Bakım verilecek kişi(ler)in yaşları',
+          showIf: { key: 'pets', anyOf: ['yes'] },
+          placeholder: { en: 'e.g. 1 cat', tr: 'Örn. 1 kedi' },
+          en: 'Pet type and number',
+          tr: 'Evcil hayvan türü ve sayısı',
         },
         {
-          key: 'infantExperience',
+          key: 'cameras',
           type: 'radio',
-          wide: true,
-          en: 'Prior newborn / infant experience required?',
-          tr: 'Yenidoğan / bebek bakım deneyimi gerekli mi?',
-          options: [
-            YES,
-            { value: 'preferred', en: 'Preferred', tr: 'Tercihen' },
-            { value: 'na', en: 'Not applicable', tr: 'İlgili değil' },
-          ],
+          en: 'Is there a camera system in the house?',
+          tr: 'Evde kamera sistemi var mı?',
+          hint: {
+            en: 'Cameras may not be installed in the worker’s room.',
+            tr: 'Çalışanın odasında kamera bulunamaz.',
+          },
+          options: [YES, NO],
         },
         {
-          key: 'specialNeeds',
-          type: 'textarea',
-          wide: true,
-          en: 'Special care needs or relevant instructions, if any',
-          tr: 'Varsa özel bakım ihtiyaçları veya ilgili talimatlar',
+          key: 'cameraDetails',
+          type: 'text',
+          showIf: { key: 'cameras', anyOf: ['yes'] },
+          placeholder: { en: 'Which areas?', tr: 'Hangi alanlarda?' },
+          en: 'Camera details',
+          tr: 'Kamera detayları',
+        },
+        {
+          key: 'otherStaff',
+          type: 'radio',
+          en: 'Any other staff working in the house?',
+          tr: 'Evde çalışan başka personel var mı?',
+          options: [NO, YES],
+        },
+        {
+          key: 'otherStaffDays',
+          type: 'select',
+          showIf: { key: 'otherStaff', anyOf: ['yes'] },
+          en: 'How many days a week?',
+          tr: 'Haftada kaç gün?',
+          options: numbers(['1', '2', '3', '4', '5', '6', '7']),
         },
       ],
     },
     {
       key: 'duties',
-      en: '4. Duties',
-      tr: '4. Görevler',
+      en: '5. Duties & working arrangements',
+      tr: '5. Görevler ve çalışma düzeni',
       fields: [
         {
           key: 'householdDuties',
@@ -285,15 +385,41 @@ export const clientForm = {
             { value: 'petCare', en: 'Pet care', tr: 'Evcil hayvan bakımı' },
             { value: 'schoolRuns', en: 'School runs', tr: 'Okula götürme / getirme' },
             { value: 'travel', en: 'Travel with family', tr: 'Aileyle seyahat' },
+            { value: 'holidays', en: 'Accompany family on holidays', tr: 'Aileyle tatile eşlik' },
+            { value: 'driving', en: 'Driving', tr: 'Araç kullanma' },
             OTHER,
+          ],
+        },
+        {
+          key: 'dayOff',
+          type: 'radio',
+          wide: true,
+          en: 'Preferred weekly day off',
+          tr: 'Haftalık izin günü tercihi',
+          options: [
+            { value: 'weekday', en: 'Weekday', tr: 'Hafta içi' },
+            { value: 'weekend', en: 'Weekend', tr: 'Hafta sonu' },
+            { value: 'any', en: 'No preference', tr: 'Fark etmez' },
+          ],
+        },
+        {
+          key: 'phoneUse',
+          type: 'radio',
+          wide: true,
+          en: 'Mobile phone use during working hours',
+          tr: 'Mesai sırasında cep telefonu kullanımı',
+          options: [
+            { value: 'allowed', en: 'Allowed', tr: 'Serbest' },
+            { value: 'limited', en: 'Limited', tr: 'Sınırlı' },
+            { value: 'notAllowed', en: 'Not allowed', tr: 'İzin yok' },
           ],
         },
       ],
     },
     {
       key: 'preferences',
-      en: '5. Candidate preferences',
-      tr: '5. Aday tercihleri',
+      en: '6. Candidate preferences',
+      tr: '6. Aday tercihleri',
       fields: [
         // Philippine rules set 23 as the minimum age for household workers abroad.
         {
@@ -329,6 +455,20 @@ export const clientForm = {
           tr: 'Asgari ilgili deneyim (yıl)',
         },
         {
+          key: 'swimming',
+          type: 'radio',
+          en: 'Is swimming required?',
+          tr: 'Yüzme bilmesi gerekli mi?',
+          options: [YES, PREFERRED, NO],
+        },
+        {
+          key: 'drivingLicence',
+          type: 'radio',
+          en: 'Driving licence required?',
+          tr: 'Ehliyet gerekli mi?',
+          options: [YES, PREFERRED, NO],
+        },
+        {
           key: 'skills',
           type: 'textarea',
           wide: true,
@@ -345,10 +485,31 @@ export const clientForm = {
       ],
     },
     {
-      key: 'selection',
-      en: '6. Selection & additional information',
-      tr: '6. Seçim ve ek bilgiler',
+      key: 'eligibility',
+      en: '7. Eligibility, start & interviews',
+      tr: '7. Uygunluk, başlangıç ve görüşmeler',
       fields: [
+        {
+          key: 'householdIncome',
+          type: 'checkbox',
+          required: true,
+          wide: true,
+          en: 'Monthly household income',
+          tr: 'Aylık hane geliri',
+          options: [
+            {
+              value: 'confirmed',
+              en: 'I can document a monthly household income above 200,000 TL.',
+              tr: 'Aylık hane gelirimin 200.000 TL’nin üzerinde olduğunu resmî belgelerle gösterebilirim.',
+            },
+          ],
+        },
+        {
+          key: 'startDate',
+          type: 'date',
+          en: 'Desired start date',
+          tr: 'İstenen başlangıç tarihi',
+        },
         {
           key: 'interviewAvailability',
           type: 'slots',
@@ -371,13 +532,15 @@ export const clientForm = {
     },
   ]),
 
-  ages: {
-    choose: { en: 'Choose', tr: 'Seçiniz' },
-    child: { en: 'Child', tr: 'çocuk' },
-    underOne: { en: 'Under 1', tr: '1 yaşından küçük' },
-  },
+  choose: { en: 'Choose', tr: 'Seçiniz' },
 
   slot: { en: 'Choice', tr: 'tercih' },
+
+  // Plain text just above the Submit button, not a question.
+  dayOffNote: {
+    en: 'The worker has one day off per week and may go out, but spends the night at home.',
+    tr: 'Çalışan haftada bir gün izin kullanır; izin gününde dışarı çıkabilir, geceyi evde geçirir.',
+  },
 
   // A short notice with a link, in place of the consent checkbox.
   privacy: {
@@ -400,6 +563,7 @@ export const clientForm = {
   // Shown by the browser when a field does not pass its check.
   messages: {
     required: { en: 'Please fill in this field.', tr: 'Lütfen bu alanı doldurun.' },
+    choice: { en: 'Please choose an option.', tr: 'Lütfen bir seçenek işaretleyin.' },
     tel: {
       en: 'Please enter a valid phone number, e.g. 0532 123 45 67 or +90 532 123 45 67.',
       tr: 'Lütfen geçerli bir telefon numarası girin, ör. 0532 123 45 67 veya +90 532 123 45 67.',
@@ -416,6 +580,10 @@ export const clientForm = {
     future: {
       en: 'Please choose a date and time from tomorrow on.',
       tr: 'Lütfen yarından itibaren bir tarih ve saat seçin.',
+    },
+    futureDate: {
+      en: 'Please choose a date from tomorrow on.',
+      tr: 'Lütfen yarından itibaren bir tarih seçin.',
     },
   },
 
